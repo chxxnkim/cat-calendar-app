@@ -648,7 +648,7 @@
   <span class="mac-menu-item">File</span>
   <span class="mac-menu-item">Edit</span>
   <span class="mac-menu-item" id="menuSpecial" onclick="toggleSpecialMenu()">Special</span>
-  <span class="mac-menu-item" id="playBtn" onclick="togglePlay()" style="cursor:pointer;font-size:10px">▶</span>
+  <span class="mac-menu-item" id="playBtn" onclick="togglePlay()" style="cursor:pointer;font-size:10px;font-family:monospace">▶&#xFE0E;</span>
   <div class="lang-switch">
     <span id="btnKR" class="lang-btn active" onclick="switchLang('ko')">KR</span>
     <span id="btnEN" class="lang-btn" onclick="switchLang('en')">EN</span>
@@ -1117,8 +1117,8 @@ function toast(msg,err=false){
 
 // ─── Music player ─────────────────────────────────────────────────────────────
 const PLAYLIST = [
-  { artist: 'CJAMM', title: 'POKERFACE', src: '/audio/track2.mp3' },
   { artist: 'NewJeans', title: 'Hype Boy 250 Remix', src: '/audio/track1.mp3' },
+  { artist: 'CJAMM', title: 'POKERFACE', src: '/audio/track2.mp3' },
 ];
 let currentTrack = 0;
 let isPlaying = false;
@@ -1137,11 +1137,11 @@ function togglePlay() {
   if (isPlaying) {
     audio.pause();
     isPlaying = false;
-    document.getElementById('playBtn').textContent = '▶';
+    document.getElementById('playBtn').textContent = '▶\uFE0E';
   } else {
     audio.play().catch(() => {});
     isPlaying = true;
-    document.getElementById('playBtn').textContent = '⏸';
+    document.getElementById('playBtn').textContent = '⏸\uFE0E';
   }
 }
 
@@ -1184,7 +1184,7 @@ document.addEventListener('click', function startAudio() {
   if (!isPlaying) {
     audio.play().then(() => {
       isPlaying = true;
-      document.getElementById('playBtn').textContent = '⏸';
+      document.getElementById('playBtn').textContent = '⏸\uFE0E';
     }).catch(() => {});
   }
   document.removeEventListener('click', startAudio);
