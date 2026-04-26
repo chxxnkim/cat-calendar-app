@@ -197,25 +197,12 @@ app.get('/auth/logout', (req, res) => {
 
 // ─── Admin API ────────────────────────────────────────────────────────────────
 
-app.get('/api/admin/accounts', (req, res) => {
-  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
-  const tokens = getTokens();
-  res.json({ accounts: tokens.map(t => t ? { email: t.email } : null) });
-});
-
 app.get('/api/admin/requests', (req, res) => {
-  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   const requests = getRequests();
   res.json({ requests: requests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) });
 });
 
-app.post('/api/admin/requests/:id/approve', async (req, res) => {
-  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
-
-  const tokens = getTokens();
-  const primary = tokens.find(Boolean);
-  if (!primary) return res.status(400).json({ error: 'No calendar connected' });
-
+app.post('/api/admin/requests/:id/approve', (req, res) => {
   const requests = getRequests();
   const idx = requests.findIndex(r => r.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Request not found' });
@@ -223,53 +210,20 @@ app.post('/api/admin/requests/:id/approve', async (req, res) => {
   const request = requests[idx];
   if (request.status !== 'pending') return res.status(400).json({ error: 'Already processed' });
 
-  try {
-    const oauth2Client = createOAuth2Client();
-    oauth2Client.setCredentials(primary.tokens);
-    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
-    const event = {
-      summary: request.title || `${request.requesterName}님과 미팅`,
-      description: `요청자: ${request.requesterName} (${request.requesterEmail})\n\n목적: ${request.purpose || ''}`,
-      start: { dateTime: request.requestedStart, timeZone: 'Asia/Seoul' },
-      end:   { dateTime: request.requestedEnd,   timeZone: 'Asia/Seoul' },
-      attendees: [{ email: request.requesterEmail }],
-      conferenceData: {
-        createRequest: {
-          requestId: `meet-${request.id}`,
-          conferenceSolutionKey: { type: 'hangoutsMeet' }
-        }
-      }
-    };
-
-    const { data } = await calendar.events.insert({
-      calendarId: 'primary',
-      requestBody: event,
-      conferenceDataVersion: 1,
-      sendUpdates: 'all'
-    });
-
-    requests[idx] = {
-      ...request,
-      status: 'approved',
-      eventId: data.id,
-      htmlLink: data.htmlLink,
-      meetLink: data.conferenceData?.entryPoints?.[0]?.uri,
-      processedAt: new Date().toISOString()
-    };
-    saveRequests(requests);
-    notifyApproved(requests[idx], data.htmlLink, data.conferenceData?.entryPoints?.[0]?.uri);
-
-    res.json({ success: true, htmlLink: data.htmlLink });
-  } catch (err) {
-    console.error('Approve error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
+  const { selectedStart, selectedEnd } = req.body;
+  requests[idx] = {
+    ...request,
+    status: 'approved',
+    requestedStart: selectedStart || request.requestedStart,
+    requestedEnd: selectedEnd || request.requestedEnd,
+    processedAt: new Date().toISOString()
+  };
+  saveRequests(requests);
+  notifyApproved(requests[idx], null, null);
+  res.json({ success: true });
 });
 
 app.post('/api/admin/requests/:id/reject', (req, res) => {
-  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
-
   const requests = getRequests();
   const idx = requests.findIndex(r => r.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });

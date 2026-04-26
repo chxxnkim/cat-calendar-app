@@ -321,14 +321,6 @@ let adminState = {
 };
 
 async function init() {
-  // Check if admin session is active
-  const res = await fetch('/api/admin/accounts');
-  if (res.status === 401) {
-    renderLoginScreen();
-    return;
-  }
-  const { accounts } = await res.json();
-  adminState.accounts = accounts;
   await fetchRequests();
   renderDashboard();
 }
@@ -384,37 +376,11 @@ function renderLoginScreen() {
 
 function renderDashboard() {
   const app = document.getElementById('app');
-  const connectedSlots = [
-    { label: '개인', fallback: 'chxxnkim@gmail.com' },
-    { label: '토스', fallback: 'chaewon@toss.im' }
-  ];
-
-  const accountCards = connectedSlots.map((slot, i) => {
-    const acct = adminState.accounts[i];
-    const connected = acct && acct.email;
-    return `
-      <div class="account-card">
-        <div class="account-avatar avatar-${i}">${slot.label[0]}</div>
-        <div class="account-info">
-          <div class="account-email">${connected ? acct.email : slot.fallback}</div>
-          <div class="account-status ${connected ? 'status-connected' : 'status-disconnected'}">
-            ${connected ? '● 연결됨' : '○ 미연결'}
-          </div>
-        </div>
-        ${!connected
-          ? `<a href="/auth/login?slot=${i}" class="btn btn-secondary btn-sm">연결</a>`
-          : ''
-        }
-      </div>
-    `;
-  }).join('');
 
   app.innerHTML = `
     <main>
       <h2 class="page-title">미팅 요청 관리</h2>
       <p class="page-subtitle">들어온 요청을 검토하고 수락 또는 거절해 주세요.</p>
-
-      <div class="accounts-strip">${accountCards}</div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
         <div class="filter-tabs" id="filterTabs"></div>
@@ -427,7 +393,6 @@ function renderDashboard() {
 
   document.getElementById('headerActions').innerHTML = `
     <a href="/" class="btn btn-ghost btn-sm" target="_blank">공개 페이지 →</a>
-    <a href="/auth/logout" class="btn btn-secondary btn-sm">로그아웃</a>
   `;
 
   renderFilterTabs();
@@ -496,21 +461,33 @@ function renderRequestCard(req) {
   const chipMap = { pending: 'chip-pending', approved: 'chip-approved', rejected: 'chip-rejected' };
   const labelMap = { pending: '대기 중', approved: '수락됨', rejected: '거절됨' };
 
-  const actions = req.status === 'pending' ? `
-    <div class="request-actions">
-      <button class="btn btn-success btn-sm" onclick="approveRequest('${req.id}', this)">
-        ✓ 수락하기
-      </button>
-      <button class="btn btn-destructive btn-sm" onclick="rejectRequest('${req.id}', this)">
-        ✕ 거절하기
-      </button>
-    </div>
-  ` : req.status === 'approved' && req.htmlLink ? `
-    <div class="request-actions">
-      <a href="${req.htmlLink}" target="_blank" class="event-link">📅 캘린더에서 보기 →</a>
-      ${req.meetLink ? `<a href="${req.meetLink}" target="_blank" class="event-link" style="margin-left:16px">🎥 Meet 링크 →</a>` : ''}
-    </div>
-  ` : '';
+  let actions = '';
+  if (req.status === 'pending') {
+    if (candidates && candidates.length > 1) {
+      const candidateRadios = req.candidates.map((c, i) => {
+        const cs = new Date(c.start), ce = new Date(c.end);
+        return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;padding:6px 0">
+          <input type="radio" name="cand-${req.id}" value="${i}" ${i===0?'checked':''} style="accent-color:var(--navy)">
+          후보${i+1}: ${fmtDate(cs)} ${fmtTime(cs)} – ${fmtTime(ce)}
+        </label>`;
+      }).join('');
+      actions = `
+        <div class="request-actions" style="flex-direction:column;align-items:flex-start;gap:10px">
+          <div style="font-size:12px;font-weight:500;color:var(--slate);text-transform:uppercase;letter-spacing:.5px">확정할 시간 선택</div>
+          <div id="cands-${req.id}">${candidateRadios}</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-success btn-sm" onclick="approveRequest('${req.id}', this, ${JSON.stringify(req.candidates)})">✓ 수락하기</button>
+            <button class="btn btn-destructive btn-sm" onclick="rejectRequest('${req.id}', this)">✕ 거절하기</button>
+          </div>
+        </div>`;
+    } else {
+      actions = `
+        <div class="request-actions">
+          <button class="btn btn-success btn-sm" onclick="approveRequest('${req.id}', this, null)">✓ 수락하기</button>
+          <button class="btn btn-destructive btn-sm" onclick="rejectRequest('${req.id}', this)">✕ 거절하기</button>
+        </div>`;
+    }
+  }
 
   return `
     <div class="request-card ${req.status}" id="req-${req.id}">
@@ -553,16 +530,29 @@ function setFilter(key) {
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
-async function approveRequest(id, btn) {
+async function approveRequest(id, btn, candidates) {
+  let selectedStart, selectedEnd;
+  if (candidates) {
+    const radios = document.querySelectorAll(`input[name="cand-${id}"]`);
+    const selected = [...radios].find(r => r.checked);
+    const idx = selected ? parseInt(selected.value) : 0;
+    selectedStart = candidates[idx].start;
+    selectedEnd = candidates[idx].end;
+  }
+
   btn.innerHTML = '<span class="spinner"></span>';
   btn.disabled = true;
   try {
-    const res = await fetch(`/api/admin/requests/${id}/approve`, { method: 'POST' });
+    const res = await fetch(`/api/admin/requests/${id}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selectedStart, selectedEnd })
+    });
     const data = await res.json();
     if (data.success) {
       const idx = adminState.requests.findIndex(r => r.id === id);
       if (idx >= 0) adminState.requests[idx].status = 'approved';
-      showToast('미팅이 수락됐어요! 캘린더 초대가 전송됐어요.', 'success');
+      showToast('수락됐어요! 확정 메일이 전송됐어요.', 'success');
       renderRequestsList();
     } else {
       showToast(data.error || '오류가 발생했어요', 'error');
