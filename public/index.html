@@ -21,6 +21,72 @@
       --body:    'Monaco', 'Courier New', monospace;
     }
 
+    /* ── Lang switch ─────────────────────────────── */
+    .lang-switch {
+      margin-left: auto;
+      display: flex;
+      gap: 2px;
+      align-items: center;
+    }
+    .lang-btn {
+      font-family: var(--font);
+      font-size: 8px;
+      color: var(--black);
+      cursor: pointer;
+      padding: 0 2px;
+      user-select: none;
+      opacity: 0.3;
+    }
+    .lang-btn.active {
+      opacity: 1;
+    }
+
+    /* ── Ticker ──────────────────────────────────── */
+    .ticker-wrap {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      margin-left: 8px;
+    }
+    .ticker-text {
+      font-family: var(--font);
+      font-size: 7px;
+      color: var(--dkgray);
+      white-space: nowrap;
+      display: inline-block;
+      animation: ticker 18s linear infinite;
+    }
+    @keyframes ticker {
+      0%   { transform: translateX(120px); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* ── Special dropdown ────────────────────────── */
+    .special-dropdown {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 0;
+      z-index: 300;
+      background: var(--white);
+      border: 1px solid var(--black);
+      box-shadow: 2px 2px 0 var(--black);
+      min-width: 200px;
+    }
+    .special-dropdown.visible { display: block; }
+    .special-track {
+      font-family: var(--font);
+      font-size: 7px;
+      color: var(--black);
+      padding: 7px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .special-track:hover { background: var(--black); color: var(--white); }
+    .special-track.playing::before { content: '♪ '; }
+
     /* ── Desktop ─────────────────────────────────── */
     body {
       background: var(--desktop);
@@ -130,7 +196,7 @@
 
     /* ── Window body ──────────────────────────────── */
     .mac-win-body {
-      padding: 16px;
+      padding: 14px 16px 16px;
       background: var(--white);
     }
 
@@ -161,26 +227,13 @@
     /* ── Cat section ──────────────────────────────── */
     .cat-row {
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       gap: 12px;
-      margin-bottom: 14px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--gray);
+      margin-bottom: 10px;
+      padding-bottom: 0;
     }
 
     .cat-sprite { flex-shrink: 0; }
-    .cat-ascii {
-      font-family: var(--body);
-      font-size: 13px;
-      line-height: 1.6;
-      color: var(--black);
-      white-space: pre;
-      display: block;
-      user-select: none;
-      min-width: 120px;
-      min-height: 5em;
-    }
-
     /* Mac-style dialog balloon */
     .cat-dialog {
       flex: 1;
@@ -188,21 +241,6 @@
       border: 1px solid var(--black);
       padding: 10px 12px;
       position: relative;
-    }
-    /* little tail pointing left */
-    .cat-dialog::before {
-      content: '';
-      position: absolute;
-      left: -6px; bottom: 16px;
-      border: 6px solid transparent;
-      border-right-color: var(--black);
-    }
-    .cat-dialog::after {
-      content: '';
-      position: absolute;
-      left: -4px; bottom: 17px;
-      border: 5px solid transparent;
-      border-right-color: var(--white);
     }
     .cat-name {
       font-family: var(--font);
@@ -301,33 +339,46 @@
 
     .mac-btn {
       background: var(--white);
-      border: 1px solid var(--black);
-      border-radius: 3px;
+      border: 2px solid var(--black);
+      border-radius: 0;
       font-family: var(--font);
-      font-size: 8px;
+      font-size: 11px;
       color: var(--black);
-      padding: 7px 18px;
+      padding: 9px 20px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 5px;
       white-space: nowrap;
       user-select: none;
+      box-shadow: 2px 2px 0 var(--black);
     }
-    .mac-btn:active { background: var(--black); color: var(--white); }
+    .mac-btn:active {
+      background: var(--black);
+      color: var(--white);
+      box-shadow: none;
+      transform: translate(2px, 2px);
+    }
     .mac-btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 
-    /* Default button: thick rounded border */
+    /* Default button: filled black */
     .mac-btn.default {
-      border: 3px solid var(--black);
-      border-radius: 8px;
-      font-weight: bold;
+      background: var(--black);
+      color: var(--white);
+      border: 2px solid var(--black);
+      box-shadow: 2px 2px 0 var(--dkgray);
+    }
+    .mac-btn.default:active {
+      background: var(--dkgray);
+      box-shadow: none;
+      transform: translate(2px, 2px);
     }
     .mac-btn.ghost {
       border-color: var(--dkgray);
       color: var(--dkgray);
+      box-shadow: 2px 2px 0 var(--dkgray);
     }
-    .mac-btn.ghost:active { background: var(--dkgray); color: var(--white); }
+    .mac-btn.ghost:active { background: var(--dkgray); color: var(--white); box-shadow: none; transform: translate(2px,2px); }
 
     /* ── Duration cards ───────────────────────────── */
     .dur-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
@@ -335,10 +386,14 @@
     .dur-card {
       border: 1px solid var(--black);
       background: var(--white);
-      padding: 16px 12px;
+      padding: 24px 12px;
       text-align: center;
       cursor: pointer;
       user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
     .dur-card:active { background: var(--ltgray); }
     .dur-card.selected { background: var(--black); }
@@ -466,9 +521,9 @@
     .mac-sum-row:last-child { border-bottom: none; }
     .mac-sum-k {
       font-family: var(--font);
-      font-size: 6px;
+      font-size: 8px;
       color: var(--dkgray);
-      width: 48px;
+      width: 52px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
@@ -532,6 +587,39 @@
     /* ── Mac divider ──────────────────────────────── */
     .mac-hr { border: none; border-top: 1px solid var(--black); margin: 8px 0; }
 
+    /* ── SVG Cat ─────────────────────────────────── */
+    .cat-sprite { flex-shrink: 0; width: 120px; height: 120px; position: relative; }
+    .cat-svg { display: block; }
+
+    /* ── Sparkle stars ───────────────────────────── */
+    .cat-stars { display: none; }
+
+    .star { position: absolute; }
+
+    @keyframes starPop {
+      0%   { opacity: 0; transform: scale(0) rotate(0deg); }
+      30%  { opacity: 1; transform: scale(1) rotate(0deg); }
+      60%  { opacity: 1; transform: scale(1) rotate(45deg); }
+      80%  { opacity: 0; transform: scale(0.4) rotate(45deg); }
+      100% { opacity: 0; transform: scale(0) rotate(45deg); }
+    }
+    .star:nth-child(1) { top: -8px;  right: 4px;  animation: starPop 1.4s steps(3) 0s   infinite; }
+    .star:nth-child(2) { top: 10px;  left: -6px;  animation: starPop 1.4s steps(3) 0.4s infinite; }
+    .star:nth-child(3) { bottom: 8px; right: -4px; animation: starPop 1.4s steps(3) 0.8s infinite; }
+    .star:nth-child(4) { top: 40%;  right: -10px; animation: starPop 1.4s steps(3) 0.2s infinite; }
+    .star:nth-child(5) { bottom: 20%; left: -8px; animation: starPop 1.4s steps(3) 1.0s infinite; }
+
+    @keyframes catBlink {
+      0%, 88%, 100% { opacity: 0; }
+      90%, 97% { opacity: 1; }
+    }
+    .eye-blink  { animation: catBlink 3.8s 0.5s infinite; }
+    .eye-blink2 { animation: catBlink 3.8s 0.7s infinite; }
+
+    #catSvgHappy { display: none; }
+    .cat-sprite.happy #catSvg      { display: none; }
+    .cat-sprite.happy #catSvgHappy { display: block; }
+
     /* ── Status bar ───────────────────────────────── */
     .mac-statusbar {
       border-top: 1px solid var(--black);
@@ -550,23 +638,27 @@
 <!-- Mac menu bar -->
 <div class="mac-menubar">
   <span class="mac-menu-item apple">&#63743;</span>
-  <span class="mac-menu-item active">냥비서</span>
   <span class="mac-menu-item">File</span>
   <span class="mac-menu-item">Edit</span>
-  <span class="mac-menu-item">Special</span>
+  <span class="mac-menu-item" id="menuSpecial" onclick="toggleSpecialMenu()">Special</span>
+  <span class="mac-menu-item" id="playBtn" onclick="togglePlay()" style="cursor:pointer;font-size:10px">▶</span>
+  <div class="lang-switch">
+    <span id="btnKR" class="lang-btn active" onclick="switchLang('ko')">KR</span>
+    <span id="btnEN" class="lang-btn" onclick="switchLang('en')">EN</span>
+  </div>
 </div>
+
+<!-- Special dropdown -->
+<div class="special-dropdown" id="specialDropdown">
+  <div class="special-track" id="track0" onclick="switchTrack(0)">CJAMM — POKERFACE</div>
+  <div class="special-track" id="track1" onclick="switchTrack(1)">NewJeans — Hype Boy 250 Remix</div>
+</div>
+
+<audio id="bgAudio" preload="auto"></audio>
 
 <div class="desktop-area">
   <div class="mac-window">
 
-    <!-- Title bar -->
-    <div class="mac-titlebar">
-      <div class="mac-close-box">□</div>
-      <span class="mac-title-text">🐱 채원님 미팅 예약 — 냥비서</span>
-      <div class="mac-win-right">
-        <div class="mac-zoom-box"></div>
-      </div>
-    </div>
 
     <div class="mac-win-body">
 
@@ -581,12 +673,27 @@
 
       <!-- Cat + bubble -->
       <div class="cat-row">
-        <div class="cat-sprite">
-          <pre class="cat-ascii" id="catAscii"></pre>
+        <div class="cat-sprite" id="catWrap">
+          <div class="cat-stars">
+            <svg class="star" width="14" height="14" viewBox="-10 -10 20 20"><path d="M0,-9 L2,-2 L9,0 L2,2 L0,9 L-2,2 L-9,0 L-2,-2Z" fill="#000"/></svg>
+            <svg class="star" width="10" height="10" viewBox="-10 -10 20 20"><path d="M0,-9 L2,-2 L9,0 L2,2 L0,9 L-2,2 L-9,0 L-2,-2Z" fill="#000"/></svg>
+            <svg class="star" width="12" height="12" viewBox="-10 -10 20 20"><path d="M0,-9 L2,-2 L9,0 L2,2 L0,9 L-2,2 L-9,0 L-2,-2Z" fill="#000"/></svg>
+            <svg class="star" width="8"  height="8"  viewBox="-10 -10 20 20"><path d="M0,-9 L2,-2 L9,0 L2,2 L0,9 L-2,2 L-9,0 L-2,-2Z" fill="#000"/></svg>
+            <svg class="star" width="11" height="11" viewBox="-10 -10 20 20"><path d="M0,-9 L2,-2 L9,0 L2,2 L0,9 L-2,2 L-9,0 L-2,-2Z" fill="#000"/></svg>
+          </div>
+          <svg id="catSvg" class="cat-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="120" height="120">
+            <path fill-rule="evenodd" fill="#000" d="M 411.00 700.00 L 411.00 695.00 L 405.50 695.00 L 400.00 695.00 L 400.00 658.00 L 400.00 621.00 L 405.50 621.00 L 411.00 621.00 L 411.00 607.50 L 411.00 594.00 L 416.50 594.00 L 422.00 594.00 L 422.00 578.55 L 422.00 563.10 L 427.25 562.80 L 432.50 562.50 L 432.50 546.50 L 432.50 530.50 L 427.25 530.20 L 422.00 529.90 L 422.00 524.95 L 422.00 520.00 L 416.50 520.00 L 411.00 520.00 L 411.00 514.50 L 411.00 509.00 L 405.55 509.00 L 400.10 509.00 L 399.80 514.25 L 399.50 519.50 L 388.75 519.78 L 378.00 520.07 L 378.00 525.03 L 378.00 530.00 L 371.00 530.00 L 364.00 530.00 L 364.00 525.00 L 364.00 520.00 L 369.42 520.00 C377.41,520.00 378.00,519.58 378.00,513.89 L 378.00 509.00 L 389.05 509.00 L 400.10 509.00 L 399.80 503.75 L 399.50 498.50 L 387.50 498.29 C380.90,498.18 368.86,498.07 360.75,498.04 L 346.00 498.00 L 346.00 493.07 L 346.00 488.14 L 351.62 487.44 C354.71,487.06 359.81,487.01 362.96,487.34 C366.11,487.67 373.25,487.66 378.84,487.32 L 389.00 486.70 L 389.00 477.85 L 389.00 469.00 L 367.50 469.00 L 346.00 469.00 L 346.00 464.09 L 346.00 459.18 L 354.25 458.53 C358.79,458.17 364.98,458.00 368.00,458.16 C371.02,458.32 376.99,458.35 381.25,458.23 L 389.00 458.00 L 389.00 431.50 L 389.00 405.00 L 394.50 405.00 L 400.00 405.00 L 400.00 360.00 L 400.00 315.00 L 411.00 315.00 L 422.00 315.00 L 422.00 319.95 L 422.00 324.90 L 427.25 325.20 C432.93,325.53 432.54,324.98 432.88,333.00 C433.00,335.91 433.14,336.00 437.95,336.00 L 442.90 336.00 L 443.20 341.25 L 443.50 346.50 L 448.75 346.80 L 454.00 347.10 L 454.00 351.99 L 454.00 356.89 L 458.25 357.19 L 462.50 357.50 L 463.00 363.00 L 463.50 368.50 L 508.50 368.50 L 553.50 368.50 L 554.00 363.00 C554.31,359.64 554.99,357.45 555.75,357.38 C556.44,357.31 558.58,357.19 560.50,357.12 L 564.00 357.00 L 564.00 352.00 L 564.00 347.00 L 568.95 347.00 L 573.90 347.00 L 574.20 341.75 L 574.50 336.50 L 579.75 336.20 L 585.00 335.90 L 585.00 330.45 L 585.00 325.00 L 590.00 325.00 L 595.00 325.00 L 595.00 320.07 L 595.00 315.14 L 604.59 314.82 C609.86,314.64 614.36,314.69 614.59,314.92 C614.81,315.15 615.00,335.51 615.00,360.17 L 615.00 405.00 L 619.98 405.00 L 624.97 405.00 L 625.23 431.58 L 625.50 458.15 L 646.75 458.04 L 668.00 457.93 L 668.00 463.44 L 668.00 468.96 L 646.75 469.23 L 625.50 469.50 L 625.50 478.44 L 625.50 487.37 L 646.75 487.37 L 668.00 487.36 L 668.00 492.68 L 668.00 498.00 L 641.50 498.00 L 615.00 498.00 L 615.00 503.50 L 615.00 509.00 L 625.00 509.00 L 635.00 509.00 L 635.00 514.00 L 635.00 519.00 L 639.25 519.18 C641.59,519.29 644.62,519.41 646.00,519.47 C648.29,519.56 648.52,519.99 648.80,524.78 L 649.10 530.00 L 642.05 530.00 L 635.00 530.00 L 635.00 525.00 L 635.00 520.00 L 625.00 520.00 L 615.00 520.00 L 615.00 514.50 L 615.00 509.00 L 609.50 509.00 L 604.00 509.00 L 604.00 514.50 L 604.00 520.00 L 599.00 520.00 L 594.00 520.00 L 594.00 525.00 L 594.00 530.00 L 588.50 530.00 L 583.00 530.00 L 583.00 546.50 L 583.00 563.00 L 588.50 563.00 L 594.00 563.00 L 594.00 578.50 L 594.00 594.00 L 598.97 594.00 L 603.94 594.00 L 604.22 607.25 L 604.50 620.50 L 609.75 620.80 L 615.00 621.10 L 615.00 647.05 L 615.00 673.00 L 623.50 673.00 L 632.00 673.00 L 632.00 667.50 L 632.00 662.00 L 637.50 662.00 L 643.00 662.00 L 643.00 657.00 L 643.00 652.00 L 648.00 652.00 L 653.00 652.00 L 653.00 647.00 L 653.00 642.00 L 658.50 642.00 L 664.00 642.00 L 664.00 613.55 L 664.00 585.10 L 669.25 584.80 L 674.50 584.50 L 674.80 579.25 L 675.10 574.00 L 685.50 574.00 L 695.90 574.00 L 696.20 579.25 L 696.50 584.50 L 701.75 584.80 L 707.00 585.10 L 707.00 615.55 L 707.00 646.00 L 701.50 646.00 L 696.00 646.00 L 696.00 657.00 L 696.00 668.00 L 690.50 668.00 L 685.00 668.00 L 685.00 675.50 C685.00,680.79 684.63,683.03 683.75,683.09 C683.06,683.13 680.38,683.17 677.80,683.17 L 673.09 683.17 L 672.80 688.84 L 672.50 694.50 L 662.25 694.78 L 652.00 695.07 L 652.00 700.03 L 652.00 705.00 L 599.00 705.00 L 546.00 705.00 L 546.00 678.45 L 546.00 651.90 L 540.75 652.20 L 535.50 652.50 L 535.23 678.75 L 534.97 705.00 L 506.48 705.00 L 478.00 705.00 L 478.00 678.50 L 478.00 652.00 L 472.50 652.00 L 467.00 652.00 L 467.00 678.50 L 467.00 705.00 L 439.00 705.00 L 411.00 705.00 L 411.00 700.00 ZM 523.00 493.00 L 523.00 488.00 L 519.00 487.88 C516.80,487.81 514.44,487.69 513.75,487.62 C512.89,487.54 512.50,485.47 512.50,481.00 L 512.50 474.50 L 517.75 474.20 L 523.00 473.90 L 523.00 468.45 L 523.00 463.00 L 507.00 463.00 L 491.00 463.00 L 491.00 468.45 L 491.00 473.90 L 496.25 474.20 L 501.50 474.50 L 501.50 481.00 L 501.50 487.50 L 496.25 487.28 L 491.00 487.06 L 491.00 492.53 L 491.00 498.00 L 507.00 498.00 L 523.00 498.00 L 523.00 493.00 ZM 457.80 469.80 C459.50,468.10 459.50,426.90 457.80,425.20 C457.13,424.53 453.91,424.00 450.50,424.00 C447.09,424.00 443.87,424.53 443.20,425.20 C441.50,426.90 441.50,468.10 443.20,469.80 C444.77,471.37 456.23,471.37 457.80,469.80 ZM 570.80 469.80 C571.66,468.94 572.00,462.58 572.00,447.50 C572.00,432.42 571.66,426.06 570.80,425.20 C570.13,424.53 566.91,424.00 563.50,424.00 C560.09,424.00 556.87,424.53 556.20,425.20 C554.93,426.47 554.40,466.27 555.61,469.42 C556.08,470.64 557.73,471.00 562.91,471.00 C566.78,471.00 570.11,470.49 570.80,469.80 Z"/>
+            <!-- Eyelid overlays for blink animation -->
+            <rect class="eye-blink"  x="440" y="421" width="21" height="52" fill="white"/>
+            <rect class="eye-blink2" x="553" y="421" width="22" height="53" fill="white"/>
+          </svg>
+          <svg id="catSvgHappy" class="cat-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="128" height="128">
+            <path d="M 273.90 723.13 C273.69,721.79 273.36,718.38 273.18,715.75 C273.03,713.38 272.57,713.00 269.91,713.00 C267.68,713.00 266.67,712.45 266.30,711.05 C265.92,709.59 264.77,709.03 261.65,708.80 L 257.50 708.50 L 257.50 659.00 L 257.50 609.50 L 261.70 609.20 C265.85,608.89 265.89,608.85 266.20,604.70 L 266.50 600.50 L 271.25 600.20 L 276.00 599.89 L 276.00 595.95 L 276.00 592.00 L 281.50 592.00 C286.70,592.00 287.00,591.86 287.00,589.50 C287.00,587.04 287.13,587.00 295.00,587.00 L 303.00 587.00 L 303.00 576.00 L 303.00 565.00 L 298.00 565.00 L 293.00 565.00 L 293.00 553.00 L 293.00 541.00 L 298.00 541.00 L 303.00 541.00 L 303.00 536.00 L 303.00 531.00 L 307.95 531.00 L 312.89 531.00 L 313.20 526.25 L 313.50 521.50 L 351.50 521.50 L 389.50 521.50 L 389.80 526.25 L 390.11 531.00 L 395.00 531.00 L 399.89 531.00 L 400.20 535.75 L 400.50 540.50 L 405.28 540.81 L 410.06 541.11 L 409.78 552.81 L 409.50 564.50 L 404.75 564.80 L 400.00 565.11 L 400.00 576.02 L 400.00 586.93 L 409.75 587.21 C419.00,587.49 419.52,587.62 419.82,589.75 C420.10,591.74 420.72,592.00 425.07,592.00 L 430.00 592.00 L 430.00 595.94 C430.00,599.87 430.02,599.89 434.25,600.19 C438.47,600.50 438.50,600.53 438.80,604.70 L 439.11 608.89 L 443.80 609.20 L 448.50 609.50 L 448.78 624.25 L 449.05 639.00 L 459.03 639.00 L 469.00 639.00 L 469.00 648.50 L 469.00 658.00 L 459.02 658.00 L 449.03 658.00 L 448.77 683.25 L 448.50 708.50 L 443.75 708.80 C439.82,709.06 439.00,709.44 439.00,711.05 C439.00,712.61 438.30,713.00 435.55,713.00 L 432.10 713.00 L 431.80 718.25 L 431.50 723.50 L 420.00 723.50 L 408.50 723.50 L 408.20 718.25 L 407.90 713.00 L 353.04 713.00 L 298.18 713.00 L 297.51 716.96 C297.14,719.14 297.10,721.35 297.41,721.86 C297.73,722.37 297.23,723.08 296.30,723.44 C294.16,724.26 274.03,723.98 273.90,723.13 ZM 438.00 656.50 L 438.00 611.00 L 433.00 611.00 L 428.00 611.00 L 428.00 606.00 L 428.00 601.00 L 423.57 601.00 C419.74,601.00 419.10,600.70 418.82,598.75 C418.52,596.63 417.98,596.48 409.25,596.21 C400.61,595.94 400.00,596.05 400.00,597.90 C400.00,599.46 400.79,599.94 403.75,600.19 C407.48,600.50 407.50,600.52 407.50,605.00 L 407.50 609.50 L 352.50 609.50 L 297.50 609.50 L 297.50 605.00 C297.50,602.13 297.95,600.45 298.75,600.38 C299.44,600.31 300.67,600.19 301.50,600.12 C302.33,600.06 303.00,599.10 303.00,598.00 C303.00,596.18 302.33,596.00 295.50,596.00 C288.17,596.00 288.00,596.06 288.00,598.50 C288.00,600.83 287.66,601.00 283.05,601.00 L 278.11 601.00 L 277.80 605.75 L 277.50 610.50 L 272.75 610.80 L 268.00 611.11 L 268.00 656.55 L 268.00 702.00 L 353.00 702.00 L 438.00 702.00 L 438.00 656.50 ZM 389.00 580.50 L 389.00 561.00 L 394.25 561.00 L 399.50 561.00 L 399.36 551.25 L 399.22 541.50 L 394.11 541.20 L 389.00 540.90 L 389.00 535.95 L 389.00 531.00 L 351.50 531.00 L 314.00 531.00 L 314.00 536.00 L 314.00 541.00 L 309.00 541.00 L 304.00 541.00 L 304.00 550.95 L 304.00 560.89 L 308.75 561.20 L 313.50 561.50 L 313.77 580.75 L 314.04 600.00 L 351.52 600.00 L 389.00 600.00 L 389.00 580.50 ZM 487.00 711.52 L 487.00 699.00 L 492.00 699.00 L 497.00 699.00 L 497.00 662.00 L 497.00 625.00 L 502.00 625.00 L 507.00 625.00 L 507.00 620.00 L 507.00 615.00 L 489.00 615.00 L 471.00 615.00 L 471.00 612.50 C471.00,611.00 470.43,610.00 469.57,610.00 C468.78,610.00 468.00,608.99 467.82,607.75 C467.57,606.03 466.74,605.43 464.25,605.19 L 461.00 604.87 L 461.00 594.44 L 461.00 584.00 L 464.50 584.00 C467.72,584.00 468.00,583.76 468.00,581.00 L 468.00 578.00 L 460.06 578.00 L 452.13 578.00 L 451.81 581.25 L 451.50 584.50 L 437.50 584.50 L 423.50 584.50 L 423.19 581.25 C422.89,578.19 422.65,578.00 418.94,578.00 L 415.00 578.00 L 415.00 566.50 L 415.00 555.00 L 419.00 555.00 L 423.00 555.00 L 423.00 551.00 L 423.00 547.00 L 429.50 547.00 L 436.00 547.00 L 436.00 544.00 L 436.00 541.00 L 448.50 541.00 L 461.00 541.00 L 461.00 537.04 L 461.00 533.08 L 469.25 532.79 L 477.50 532.50 L 477.81 529.30 C478.10,526.25 478.34,526.09 482.81,525.80 L 487.50 525.50 L 487.79 516.75 L 488.08 508.00 L 483.09 508.00 L 478.10 508.00 L 477.80 502.75 L 477.50 497.50 L 472.75 497.20 L 468.00 496.89 L 468.00 492.00 L 468.00 487.10 L 462.75 486.80 L 457.50 486.50 L 457.20 481.25 L 456.90 476.00 L 452.00 476.00 L 447.10 476.00 L 446.80 481.25 L 446.50 486.50 L 436.25 486.78 L 426.00 487.07 L 426.00 492.03 L 426.00 497.00 L 420.50 497.00 L 415.00 497.00 L 415.00 492.12 C415.00,487.46 415.14,487.22 418.12,486.62 C419.84,486.28 422.38,486.00 423.75,486.00 C426.18,486.00 426.24,485.85 425.59,481.00 L 424.93 476.00 L 436.02 476.00 L 447.10 476.00 L 446.80 470.75 L 446.50 465.50 L 420.75 465.23 L 395.00 464.97 L 395.00 459.48 L 395.00 454.00 L 415.54 454.00 L 436.08 454.00 L 435.79 444.75 L 435.50 435.50 L 415.25 435.50 L 395.00 435.50 L 395.00 429.75 L 395.00 424.00 L 415.50 424.00 L 436.00 424.00 L 436.00 398.05 L 436.00 372.10 L 441.25 371.80 L 446.50 371.50 L 446.76 325.25 L 447.02 279.00 L 457.51 279.00 L 468.00 279.00 L 468.00 285.00 L 468.00 291.00 L 473.00 291.00 L 478.00 291.00 L 478.00 296.50 L 478.00 302.00 L 483.50 302.00 L 489.00 302.00 L 489.00 308.00 L 489.00 314.00 L 494.50 314.00 L 500.00 314.00 L 500.00 319.50 L 500.00 325.00 L 504.95 325.00 L 509.90 325.00 L 510.20 330.75 L 510.50 336.50 L 553.92 336.61 C577.80,336.67 598.16,336.51 599.17,336.25 C600.66,335.86 601.00,334.76 601.00,330.44 L 601.00 325.10 L 606.25 324.80 C609.53,324.61 611.55,324.03 611.62,323.25 C611.69,322.56 611.81,320.22 611.88,318.05 L 612.00 314.11 L 616.75 313.80 L 621.50 313.50 L 621.80 307.75 L 622.10 302.00 L 627.55 302.00 L 633.00 302.00 L 633.00 296.50 L 633.00 291.00 L 638.00 291.00 L 643.00 291.00 L 643.00 285.00 L 643.00 279.00 L 653.00 279.00 L 663.00 279.00 L 663.00 325.50 L 663.00 372.00 L 668.50 372.00 L 674.00 372.00 L 674.00 397.98 L 674.00 423.96 L 694.75 424.23 L 715.50 424.50 L 715.80 429.73 L 716.10 434.96 L 695.30 435.23 L 674.50 435.50 L 674.21 444.73 L 673.93 453.96 L 694.71 454.23 L 715.50 454.50 L 715.80 459.73 L 716.10 464.97 L 689.80 465.23 L 663.50 465.50 L 663.50 470.50 L 663.50 475.50 L 673.64 475.78 C684.81,476.10 684.95,476.19 684.99,483.50 C685.00,486.45 685.09,486.50 690.25,486.50 L 695.50 486.50 L 695.80 491.75 L 696.10 497.00 L 690.05 497.00 L 684.00 497.00 L 684.00 492.03 L 684.00 487.07 L 673.75 486.78 L 663.50 486.50 L 663.20 481.25 L 662.90 476.00 L 657.95 476.00 L 653.00 476.00 L 653.00 481.50 L 653.00 487.00 L 648.50 487.00 L 644.00 487.00 L 644.00 492.00 L 644.00 497.00 L 639.00 497.00 L 634.00 497.00 L 634.00 514.00 L 634.00 531.00 L 639.00 531.00 L 644.00 531.00 L 644.00 547.00 L 644.00 563.00 L 649.00 563.00 L 654.00 563.00 L 654.00 578.50 L 654.00 594.00 L 659.00 594.00 L 664.00 594.00 L 664.00 625.50 L 664.00 657.00 L 669.00 657.00 L 674.00 657.00 L 674.00 652.05 L 674.00 647.10 L 679.25 646.80 L 684.50 646.50 L 684.80 641.25 L 685.10 636.00 L 690.05 636.00 L 695.00 636.00 L 695.00 630.50 L 695.00 625.00 L 699.95 625.00 L 704.90 625.00 L 705.20 619.75 L 705.50 614.50 L 710.23 614.20 L 714.97 613.89 L 715.23 585.20 L 715.50 556.50 L 720.75 556.20 L 726.00 555.90 L 726.00 550.45 L 726.00 545.00 L 736.50 545.00 L 747.00 545.00 L 747.00 550.50 L 747.00 556.00 L 751.85 556.00 L 756.69 556.00 L 757.35 568.16 C758.15,583.17 758.18,614.73 757.39,617.68 C757.03,619.03 756.27,619.66 755.39,619.32 C754.62,619.02 752.41,619.08 750.49,619.44 L 747.00 620.09 L 747.00 630.55 L 747.00 641.00 L 742.00 641.00 L 737.00 641.00 L 737.00 649.00 L 737.00 657.00 L 732.05 657.00 L 727.10 657.00 L 726.80 662.25 L 726.50 667.50 L 721.25 667.80 L 716.00 668.10 L 716.00 673.05 L 716.00 678.00 L 711.05 678.00 L 706.10 678.00 L 705.80 683.25 L 705.50 688.50 L 695.25 688.78 L 685.00 689.07 L 685.00 694.03 L 685.00 699.00 L 674.50 699.00 L 664.00 699.00 L 664.00 706.00 L 664.00 713.00 L 659.05 713.00 L 654.10 713.00 L 653.80 718.25 L 653.50 723.50 L 602.75 723.76 L 552.00 724.02 L 552.00 716.57 C552.00,712.47 552.45,708.84 553.00,708.50 C555.26,707.10 553.73,706.00 549.54,706.00 L 545.08 706.00 L 544.79 714.75 L 544.50 723.50 L 515.75 723.77 L 487.00 724.03 L 487.00 711.52 ZM 561.00 687.00 L 561.00 668.00 L 557.50 668.00 L 554.00 668.00 L 554.00 686.33 C554.00,696.42 554.30,704.97 554.67,705.33 C555.03,705.70 556.61,706.00 558.17,706.00 L 561.00 706.00 L 561.00 687.00 ZM 526.82 612.25 L 526.50 609.50 L 516.75 609.46 L 507.00 609.42 L 507.00 612.21 L 507.00 615.00 L 517.07 615.00 L 527.13 615.00 L 526.82 612.25 ZM 486.49 574.00 C486.50,572.03 485.85,571.85 477.25,571.38 L 468.00 570.88 L 468.00 574.00 L 468.00 577.12 L 477.24 576.62 C485.84,576.16 486.49,575.97 486.49,574.00 ZM 507.00 566.87 C507.00,563.75 507.02,563.74 511.50,564.25 C515.91,564.74 516.00,564.70 516.00,561.88 C516.00,559.14 515.79,559.00 511.52,559.00 C507.57,559.00 506.96,559.30 506.41,561.50 C505.80,563.93 505.54,564.00 496.89,564.00 L 488.00 564.00 L 488.00 567.00 L 488.00 570.00 L 497.50 570.00 L 507.00 570.00 L 507.00 566.87 ZM 527.00 555.50 L 527.00 552.00 L 532.50 552.00 L 538.00 552.00 L 538.00 548.45 L 538.00 544.90 L 532.75 545.20 C527.65,545.49 527.49,545.59 527.19,548.70 C526.89,551.80 526.72,551.91 521.70,552.20 C517.64,552.44 516.44,552.89 516.17,554.31 C515.48,557.97 516.75,559.00 521.97,559.00 L 527.00 559.00 L 527.00 555.50 ZM 570.00 460.00 L 570.00 455.00 L 565.00 455.00 L 560.00 455.00 L 560.00 449.00 L 560.00 443.00 L 565.00 443.00 L 570.00 443.00 L 570.00 437.47 L 570.00 431.95 L 554.25 432.22 L 538.50 432.50 L 538.50 437.50 L 538.50 442.50 L 543.75 442.80 L 549.00 443.10 L 549.00 449.05 L 549.00 455.00 L 543.75 455.00 L 538.50 455.01 L 538.22 460.00 L 537.94 465.00 L 553.97 465.00 L 570.00 465.00 L 570.00 460.00 ZM 506.00 414.92 L 506.00 392.00 L 497.50 392.00 L 489.00 392.00 L 489.00 414.83 C489.00,427.39 489.19,437.85 489.41,438.08 C489.64,438.31 493.46,438.35 497.91,438.17 L 506.00 437.85 L 506.00 414.92 ZM 618.77 437.47 C619.76,437.14 619.98,432.08 619.77,414.77 L 619.50 392.50 L 610.75 392.21 L 602.00 391.92 L 602.00 414.26 C602.00,428.43 602.38,436.98 603.04,437.64 C604.00,438.60 615.71,438.47 618.77,437.47 ZM 377.57 504.23 C377.26,503.92 377.00,499.24 377.00,493.83 L 377.00 484.00 L 382.00 484.00 L 387.00 484.00 L 387.00 494.00 L 387.00 504.00 L 384.25 504.08 C382.74,504.12 380.74,504.30 379.82,504.48 C378.89,504.66 377.88,504.55 377.57,504.23 ZM 348.00 490.00 L 348.00 476.00 L 353.00 476.00 L 358.00 476.00 L 358.00 490.00 L 358.00 504.00 L 353.00 504.00 L 348.00 504.00 L 348.00 490.00 ZM 318.00 482.00 L 318.00 467.00 L 323.00 467.00 L 328.00 467.00 L 328.00 482.00 L 328.00 497.00 L 323.00 497.00 L 318.00 497.00 L 318.00 482.00 Z" fill="#000"/>
+          </svg>
         </div>
         <div class="cat-dialog">
-          <div class="cat-name">[ 냥비서 ]</div>
-          <div class="cat-msg" id="catMsg">채원님 캘린더 지킴이냥 🐾<br>먼저 이름을 알려달라냥!</div>
+          <div class="cat-name" style="font-family:var(--font);color:var(--black)">Cat QQ</div>
+          <div class="cat-msg" id="catMsg">채원님 캘린더 지킴이냥~<br>먼저 이름을 알려달라냥!</div>
         </div>
       </div>
 
@@ -597,8 +704,8 @@
 
     <!-- Status bar -->
     <div class="mac-statusbar">
-      <span id="statusLeft">Ready</span>
-      <span id="statusRight">냥비서 v1.0</span>
+      <span id="statusLeft"></span>
+      <span id="statusRight"></span>
     </div>
 
   </div>
@@ -607,70 +714,109 @@
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-const WORK_START = 9, WORK_END = 20;
-const DAY_KO = ['월','화','수','목','금','토','일'];
+const WORK_START = 11, WORK_END = 24;
 
-// ─── ASCII cat dance frames ───────────────────────────────────────────────────
-const DANCE = [
-  "♪  ∧＿∧  ♪\n  （´・ω・｀∩\n   o      ,ﾉ\n   Ｏ＿  .ﾉ\n       (ノ  ",
-  "   ∧＿∧  ♪\n  ∩・ω・｀）\n   |    ⊂ﾉ\n   |    _⊃  ♪\n   し ⌒   ",
-  "♪  ∧＿∧∩  \n  （´・ω・)ﾉ\n  ⊂⌒l   / ♪\n   （＿）)  ☆\n  (（＿）☆  ",
-  "   ∩∧＿∧ ♪\n   ヽ(・ω・｀）\n    〉i⌒l⊃ \n♪  ( （＿） ☆\n   （＿）))☆",
-];
-const THINK = [
-  "   ∧＿∧    \n  （- ω -  ）\n   |   づ📄\n   |        \n   し⌒      ",
-  "   ∧＿∧    \n  （ .ω.  ）\n   |   づ📄\n   |        \n   し⌒      ",
-];
-const STILL = {
-  normal: "   ∧＿∧    \n  （´・ω・｀）\n   |   >📋 \n   |        \n   し⌒      ",
-  think:  "   ∧＿∧    \n  （- ω -  ）\n   |   づ📄\n   |        \n   し⌒      ",
-  happy:  "   ∧＿∧    \n  （´・ω・｀）\n   ＼  ✔️  ／\n    ＼    ／  \n     ~~      ",
+// ─── i18n ─────────────────────────────────────────────────────────────────────
+let lang = 'ko';
+const I18N = {
+  ko: {
+    days: ['월','화','수','목','금','토','일'],
+    cat1: '김채원과의 미팅 약속을 잡아주겠다냥<br>먼저 이름을 알려달라냥',
+    cat2: n => `${n}님, 얼마나 이야기 나눌지 골라달라냥`,
+    cat3a: '수염 레이더 작동 중이냥 📡<br>잠깐만 기다려달라냥...',
+    cat3: '원하는 시간 3개만 콕 찍어달라냥<br>저녁 7시 이후에 주로 가능하다냥',
+    cat4: '거의 다 됐다냥<br>마지막으로 정보만 알려달라냥',
+    cat5: '전달 완료냥!<br>김채원이 곧 확인할거다냥 재촉하겠다냥',
+    nameLabel: 'YOUR NAME', namePlaceholder: '당신의 이름',
+    nextBtn: '다음 ▶', prevBtn: '◀ 이전', backBtn: '◀ 이전',
+    dur30: '30분', dur30desc: '빠른 싱크',
+    dur60: '1시간', dur60desc: '여유로운 대화',
+    findSlots: '빈 시간 찾기',
+    loading: '로딩 중...',
+    selectedCount: n => `${n}개 선택됨`,
+    nextSlot: '이 시간으로 ▶',
+    emailLabel: 'EMAIL', emailHint: '수락 여부를 이 메일로 알려드리겠다냥',
+    titleLabel: 'MEETING TITLE', titlePlaceholder: '예: 협업 제안 논의',
+    purposeLabel: 'PURPOSE (선택)', purposePlaceholder: '냥비서가 채원님께 전달하겠다냥...',
+    submitBtn: '요청 보내기', sending: '전송 중...',
+    labelName: '이름', labelLength: '길이', labelCandidate: i => `후보${i+1}`,
+    labelMin: '분',
+    restartBtn: '↩ 처음으로 돌아가기',
+    nameRequired: '이름을 입력해 주세요 😾',
+    emailRequired: '이메일을 입력해 주세요 😾',
+    titleRequired: '미팅 제목을 알려주세요 😾',
+    maxSlots: '최대 3개까지 선택할 수 있다냥!',
+    networkError: '네트워크 오류 😿',
+    locale: 'ko-KR',
+  },
+  en: {
+    days: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    cat1: 'I\'ll help schedule your meeting with Chaewon!<br>First, what\'s your name?',
+    cat2: n => `${n}, how long would you like to chat?`,
+    cat3a: 'Whisker radar activating... 📡<br>Just a moment please...',
+    cat3: 'Pick up to 3 time slots!<br>Evenings after 7PM are usually best~',
+    cat4: 'Almost there!<br>Just a bit more info~',
+    cat5: 'Request sent!<br>Chaewon will check it soon~',
+    nameLabel: 'YOUR NAME', namePlaceholder: 'Your name',
+    nextBtn: 'Next ▶', prevBtn: '◀ Back', backBtn: '◀ Back',
+    dur30: '30 min', dur30desc: 'Quick sync',
+    dur60: '1 hour', dur60desc: 'Relaxed chat',
+    findSlots: 'Find open slots',
+    loading: 'Loading...',
+    selectedCount: n => `${n} selected`,
+    nextSlot: 'Choose this time ▶',
+    emailLabel: 'EMAIL', emailHint: 'We\'ll notify you of the result at this email',
+    titleLabel: 'MEETING TITLE', titlePlaceholder: 'e.g. Collaboration discussion',
+    purposeLabel: 'PURPOSE (optional)', purposePlaceholder: 'Leave a note for Chaewon...',
+    submitBtn: 'Send Request', sending: 'Sending...',
+    labelName: 'Name', labelLength: 'Duration', labelCandidate: i => `Option ${i+1}`,
+    labelMin: 'min',
+    restartBtn: '↩ Start over',
+    nameRequired: 'Please enter your name 😾',
+    emailRequired: 'Please enter your email 😾',
+    titleRequired: 'Please enter a meeting title 😾',
+    maxSlots: 'You can select up to 3 slots!',
+    networkError: 'Network error 😿',
+    locale: 'en-US',
+  }
 };
+function t(key, ...args) {
+  const v = I18N[lang][key];
+  return typeof v === 'function' ? v(...args) : v;
+}
+function switchLang(l) {
+  lang = l;
+  document.getElementById('btnKR').classList.toggle('active', l === 'ko');
+  document.getElementById('btnEN').classList.toggle('active', l === 'en');
+  renderStep();
+  const catKey = S.step === 5 ? 5 : S.step;
+  setCat(catKey);
+}
 
-let catTimer = null;
 function drawCat(mode = 'normal') {
-  const el = document.getElementById('catAscii');
-  if (!el) return;
-  if (catTimer) { clearInterval(catTimer); catTimer = null; }
-  const frames = mode === 'think' ? [...THINK, ...THINK] : DANCE;
-  const ms = mode === 'happy' ? 200 : 260;
-  let i = 0;
-  el.textContent = frames[0];
-  catTimer = setInterval(() => {
-    i++;
-    if (i >= frames.length) {
-      clearInterval(catTimer); catTimer = null;
-      el.textContent = STILL[mode] || STILL.normal;
-    } else {
-      el.textContent = frames[i];
-    }
-  }, ms);
+  const wrap = document.getElementById('catWrap');
+  if (wrap) wrap.classList.toggle('happy', mode === 'happy');
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let S = { step:1, name:'', dur:60, weekOff:0, busy:[], selStart:null, selEnd:null };
+let S = { step:1, name:'', dur:60, weekOff:0, busy:[], selections:[] };
 
 const CAT_MSGS = {
-  1:   { mode:'normal', msg:'채원님 캘린더 지킴이냥 🐾<br>먼저 이름을 알려달라냥!' },
-  2:   { mode:'normal', msg:'얼마나 이야기 나눌지<br>골라달라냥~ ⚡☕' },
-  '3a':{ mode:'think',  msg:'수염 레이더 작동 중이냥 📡<br>잠깐만 기다려달라냥...' },
-  3:   { mode:'normal', msg:'빈 시간을 찾았다냥! ✅<br>마음에 드는 시간을<br>콕 찍어달라냥!' },
-  4:   { mode:'normal', msg:'거의 다 됐다냥! 📬<br>마지막으로 정보만<br>알려달라냥~' },
-  5:   { mode:'happy',  msg:'전달 완료냥!! 🎉<br>채원님이 확인할 거냥!' },
+  1:   { mode:'normal', msg:() => t('cat1') },
+  2:   { mode:'normal', msg:() => t('cat2', S.name) },
+  '3a':{ mode:'think',  msg:() => t('cat3a') },
+  3:   { mode:'normal', msg:() => t('cat3') },
+  4:   { mode:'normal', msg:() => t('cat4') },
+  5:   { mode:'happy',  msg:() => t('cat5') },
 };
 
 function setCat(key) {
   const c = CAT_MSGS[key];
   drawCat(c.mode);
-  document.getElementById('catMsg').innerHTML = c.msg;
+  document.getElementById('catMsg').innerHTML = c.msg();
 }
 
-function setStatus(left, right) {
-  const l = document.getElementById('statusLeft');
-  const r = document.getElementById('statusRight');
-  if (l && left)  l.textContent = left;
-  if (r && right) r.textContent = right;
-}
+function setStatus(left, right) {}
 
 function updateProgress() {
   [1,2,3,4].forEach(n => {
@@ -701,24 +847,22 @@ function renderStep() {
 function step1HTML() {
   return `
     <div class="step-dialog">
-      <div class="step-titlebar"><span class="step-titlebar-text">이름 입력</span></div>
       <div class="step-body">
-        <p class="step-title">이름을 알려주세요</p>
         <div class="mac-field">
-          <label class="mac-label">YOUR NAME</label>
+          <label class="mac-label">${t('nameLabel')}</label>
           <input class="mac-input big" id="nameIn" type="text"
-            value="${esc(S.name)}" placeholder="홍길동"
+            value="${esc(S.name)}" placeholder="${t('namePlaceholder')}"
             onkeydown="if(event.key==='Enter')next1()" />
         </div>
         <div class="btn-row full">
-          <button class="mac-btn default" onclick="next1()">다음 ▶</button>
+          <button class="mac-btn default" onclick="next1()">${t('nextBtn')}</button>
         </div>
       </div>
     </div>`;
 }
 function next1() {
   const v = document.getElementById('nameIn')?.value.trim();
-  if (!v) { toast('이름을 입력해 주세요 😾', true); return; }
+  if (!v) { toast(t('nameRequired'), true); return; }
   S.name = v; S.step = 2; renderStep();
 }
 
@@ -726,24 +870,20 @@ function next1() {
 function step2HTML() {
   return `
     <div class="step-dialog">
-      <div class="step-titlebar"><span class="step-titlebar-text">미팅 시간</span></div>
       <div class="step-body">
-        <p class="step-title">${esc(S.name)}님,<br>얼마나 이야기 나눌까요?</p>
         <div class="dur-grid">
           <div class="dur-card ${S.dur===30?'selected':''}" onclick="setDur(30,this)">
-            <div class="dur-icon">⚡</div>
-            <div class="dur-label">30분</div>
-            <div class="dur-desc">빠른 싱크</div>
+            <div class="dur-label">${t('dur30')}</div>
+            <div class="dur-desc">${t('dur30desc')}</div>
           </div>
           <div class="dur-card ${S.dur===60?'selected':''}" onclick="setDur(60,this)">
-            <div class="dur-icon">☕</div>
-            <div class="dur-label">1시간</div>
-            <div class="dur-desc">여유로운 대화</div>
+            <div class="dur-label">${t('dur60')}</div>
+            <div class="dur-desc">${t('dur60desc')}</div>
           </div>
         </div>
         <div class="btn-row">
-          <button class="mac-btn ghost" onclick="back()">◀ 이전</button>
-          <button class="mac-btn default" onclick="next2()">빈 시간 찾기</button>
+          <button class="mac-btn ghost" onclick="back()">${t('prevBtn')}</button>
+          <button class="mac-btn default" onclick="next2()">${t('findSlots')}</button>
         </div>
       </div>
     </div>`;
@@ -759,10 +899,9 @@ function next2() { S.step = 3; renderStep(); }
 function step3HTML() {
   return `
     <div class="step-dialog">
-      <div class="step-titlebar"><span class="step-titlebar-text">시간 선택</span></div>
       <div class="step-body" style="padding-bottom:12px">
         <div class="cal-nav">
-          <span class="cal-label" id="calLabel">로딩 중...</span>
+          <span class="cal-label" id="calLabel">${t('loading')}</span>
           <div class="cal-nav-btns">
             <button class="mac-btn" style="padding:4px 8px;font-size:7px" onclick="wk(-1)">◀</button>
             <button class="mac-btn" style="padding:4px 8px;font-size:7px" onclick="wk0()">TODAY</button>
@@ -782,8 +921,8 @@ function step3HTML() {
           <span>■</span><span id="slotTxt"></span>
         </div>
         <div class="btn-row" style="margin-top:12px">
-          <button class="mac-btn ghost" onclick="back()">◀ 이전</button>
-          <button class="mac-btn default" id="toStep4" disabled onclick="next3()">이 시간으로 ▶</button>
+          <button class="mac-btn ghost" onclick="back()">${t('prevBtn')}</button>
+          <button class="mac-btn default" id="toStep4" disabled onclick="next3()">${t('nextSlot')}</button>
         </div>
       </div>
     </div>`;
@@ -820,7 +959,7 @@ function drawCal() {
   html += `<div class="cal-th"></div>`;
   days.forEach((d,i) => {
     const isTd = d.getTime()===today.getTime();
-    html += `<div class="cal-th ${isTd?'today':''}">${DAY_KO[i]}<br>${d.getDate()}</div>`;
+    html += `<div class="cal-th ${isTd?'today':''}">${t('days')[i]}<br>${d.getDate()}</div>`;
   });
 
   slots.forEach(({h,m}) => {
@@ -830,7 +969,7 @@ function drawCal() {
       const se=new Date(ss); se.setMinutes(se.getMinutes()+S.dur);
       const past=se<=new Date();
       const busy=S.busy.some(b=>b.s<se&&b.e>ss);
-      const sel=S.selStart&&S.selStart.getTime()===ss.getTime();
+      const sel=S.selections.some(s=>s.si===ss.toISOString());
       let cls=`cal-cell ${hCell}`;
       if(past)cls+=' past'; else if(busy)cls+=' busy';
       if(sel)cls+=' selected';
@@ -845,52 +984,58 @@ function drawCal() {
 }
 
 function pickSlot(si,ei) {
-  S.selStart=new Date(si); S.selEnd=new Date(ei);
+  const idx=S.selections.findIndex(s=>s.si===si);
+  if(idx>=0) { S.selections.splice(idx,1); }
+  else if(S.selections.length>=3) { toast(t('maxSlots')); return; }
+  else { S.selections.push({si,ei}); }
   drawCal();
-  const s=new Date(si),e=new Date(ei);
-  const fd=d=>d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
-  const ft=d=>d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
   const badge=document.getElementById('slotBadge');
   const txt=document.getElementById('slotTxt');
-  if(badge&&txt){txt.textContent=`${fd(s)} ${ft(s)} — ${ft(e)}`;badge.classList.add('visible');}
+  if(badge&&txt) {
+    if(S.selections.length===0) { badge.classList.remove('visible'); }
+    else { txt.textContent=t('selectedCount', S.selections.length); badge.classList.add('visible'); }
+  }
   const btn=document.getElementById('toStep4');
-  if(btn)btn.disabled=false;
+  if(btn) btn.disabled=S.selections.length===0;
 }
 
 function wk(d){S.weekOff+=d;drawCal();}
 function wk0(){S.weekOff=0;drawCal();}
-function next3(){if(!S.selStart)return;S.step=4;renderStep();}
+function next3(){if(!S.selections.length)return;S.step=4;renderStep();}
 
 // ── Step 4 ─────────────────────────────────────────────────────────────────
 function step4HTML() {
-  const fd=d=>d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
-  const ft=d=>d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  const loc=t('locale');
+  const fd=d=>d.toLocaleDateString(loc,{month:'long',day:'numeric',weekday:'short'});
+  const ft=d=>d.toLocaleTimeString(loc,{hour:'2-digit',minute:'2-digit'});
+  const slotRows=S.selections.map((s,i)=>{
+    const st=new Date(s.si),en=new Date(s.ei);
+    return `<div class="mac-sum-row"><span class="mac-sum-k">${t('labelCandidate',i)}</span><span class="mac-sum-v">${fd(st)} ${ft(st)} — ${ft(en)}</span></div>`;
+  }).join('');
   return `
     <div class="step-dialog">
-      <div class="step-titlebar"><span class="step-titlebar-text">미팅 정보 입력</span></div>
       <div class="step-body">
-        <p class="step-title">마지막 단계냥!</p>
         <div class="mac-summary">
-          <div class="mac-sum-row"><span class="mac-sum-k">이름</span><span class="mac-sum-v">${esc(S.name)}</span></div>
-          <div class="mac-sum-row"><span class="mac-sum-k">시간</span><span class="mac-sum-v">${fd(S.selStart)} ${ft(S.selStart)} — ${ft(S.selEnd)}</span></div>
-          <div class="mac-sum-row"><span class="mac-sum-k">길이</span><span class="mac-sum-v">${S.dur}분</span></div>
+          <div class="mac-sum-row"><span class="mac-sum-k">${t('labelName')}</span><span class="mac-sum-v">${esc(S.name)}</span></div>
+          ${slotRows}
+          <div class="mac-sum-row"><span class="mac-sum-k">${t('labelLength')}</span><span class="mac-sum-v">${S.dur}${t('labelMin')}</span></div>
         </div>
         <div class="mac-field">
-          <label class="mac-label">EMAIL</label>
+          <label class="mac-label">${t('emailLabel')}</label>
           <input class="mac-input" id="reqEmail" type="email" placeholder="you@example.com" />
-          <div class="mac-hint">수락 여부를 이 메일로 알려드려요</div>
+          <div class="mac-hint">${t('emailHint')}</div>
         </div>
         <div class="mac-field">
-          <label class="mac-label">MEETING TITLE</label>
-          <input class="mac-input" id="reqTitle" type="text" placeholder="예: 협업 제안 논의" />
+          <label class="mac-label">${t('titleLabel')}</label>
+          <input class="mac-input" id="reqTitle" type="text" placeholder="${t('titlePlaceholder')}" />
         </div>
         <div class="mac-field">
-          <label class="mac-label">PURPOSE (선택)</label>
-          <textarea class="mac-input" id="reqPurpose" placeholder="냥비서가 채원님께 전달할게요..."></textarea>
+          <label class="mac-label">${t('purposeLabel')}</label>
+          <textarea class="mac-input" id="reqPurpose" placeholder="${t('purposePlaceholder')}"></textarea>
         </div>
         <div class="btn-row">
-          <button class="mac-btn ghost" onclick="back()">◀ 이전</button>
-          <button class="mac-btn default" id="submitBtn" onclick="send()">요청 보내기 🐾</button>
+          <button class="mac-btn ghost" onclick="back()">${t('backBtn')}</button>
+          <button class="mac-btn default" id="submitBtn" onclick="send()">${t('submitBtn')}</button>
         </div>
       </div>
     </div>`;
@@ -900,19 +1045,20 @@ async function send() {
   const email=document.getElementById('reqEmail')?.value.trim();
   const title=document.getElementById('reqTitle')?.value.trim();
   const purpose=document.getElementById('reqPurpose')?.value.trim();
-  if(!email){toast('이메일을 입력해 주세요 😾',true);return;}
-  if(!title){toast('미팅 제목을 알려주세요 😾',true);return;}
+  if(!email){toast(t('emailRequired'),true);return;}
+  if(!title){toast(t('titleRequired'),true);return;}
   const btn=document.getElementById('submitBtn');
-  btn.textContent='전송 중...';btn.disabled=true;
-  setStatus('서버에 전송 중...','');
+  btn.textContent=t('sending');btn.disabled=true;
+  setStatus('...','');
   try {
     const res=await fetch('/api/request',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({requesterName:S.name,requesterEmail:email,title,purpose,
-        requestedStart:S.selStart.toISOString(),requestedEnd:S.selEnd.toISOString()})});
+        requestedStart:S.selections[0].si,requestedEnd:S.selections[0].ei,
+        candidates:S.selections.map(s=>({start:s.si,end:s.ei}))})});
     const d=await res.json();
     if(d.success) renderSuccess();
-    else{toast(d.error||'오류가 발생했어요 😿',true);btn.textContent='요청 보내기 🐾';btn.disabled=false;}
-  } catch{toast('네트워크 오류 😿',true);btn.textContent='요청 보내기 🐾';btn.disabled=false;}
+    else{toast(d.error||t('networkError'),true);btn.textContent=t('submitBtn');btn.disabled=false;}
+  } catch{toast(t('networkError'),true);btn.textContent=t('submitBtn');btn.disabled=false;}
 }
 
 // ── Success ─────────────────────────────────────────────────────────────────
@@ -921,24 +1067,24 @@ function renderSuccess() {
   setStatus('전송 완료!', '냥비서 v1.0');
   document.getElementById('progressLabel').textContent='DONE';
   [1,2,3,4].forEach(n=>document.getElementById('pd'+n).className='progress-dot done');
-  const fd=d=>d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
-  const ft=d=>d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  const loc=t('locale');
+  const fd=d=>d.toLocaleDateString(loc,{month:'long',day:'numeric',weekday:'short'});
+  const ft=d=>d.toLocaleTimeString(loc,{hour:'2-digit',minute:'2-digit'});
+  const slotRows=S.selections.map((s,i)=>{
+    const st=new Date(s.si),en=new Date(s.ei);
+    return `<div class="mac-sum-row"><span class="mac-sum-k">${t('labelCandidate',i)}</span><span class="mac-sum-v">${fd(st)} ${ft(st)} — ${ft(en)}</span></div>`;
+  }).join('');
   document.getElementById('stepContainer').innerHTML=`
     <div class="step">
       <div class="step-dialog">
-        <div class="step-titlebar"><span class="step-titlebar-text">전송 완료 !</span></div>
         <div class="step-body">
-          <p class="mac-success-title">요청이 전달됐다냥!! 🎉</p>
           <div class="mac-summary">
-            <div class="mac-sum-row"><span class="mac-sum-k">이름</span><span class="mac-sum-v">${esc(S.name)}</span></div>
-            <div class="mac-sum-row"><span class="mac-sum-k">시간</span><span class="mac-sum-v">${fd(S.selStart)} ${ft(S.selStart)} — ${ft(S.selEnd)}</span></div>
-            <div class="mac-sum-row"><span class="mac-sum-k">길이</span><span class="mac-sum-v">${S.dur}분</span></div>
+            <div class="mac-sum-row"><span class="mac-sum-k">${t('labelName')}</span><span class="mac-sum-v">${esc(S.name)}</span></div>
+            ${slotRows}
+            <div class="mac-sum-row"><span class="mac-sum-k">${t('labelLength')}</span><span class="mac-sum-v">${S.dur}${t('labelMin')}</span></div>
           </div>
-          <p style="font-family:var(--body);font-size:13px;color:var(--dkgray);margin-bottom:14px;line-height:1.6">
-            채원님이 검토 후 이메일로 결과를 알려드릴 거예요. 조금만 기다려달라냥 🐾
-          </p>
           <div class="btn-row full">
-            <button class="mac-btn" onclick="restart()">↩ 처음으로 돌아가기</button>
+            <button class="mac-btn" onclick="restart()">${t('restartBtn')}</button>
           </div>
         </div>
       </div>
@@ -946,7 +1092,7 @@ function renderSuccess() {
 }
 
 function restart() {
-  S={step:1,name:'',dur:60,weekOff:0,busy:[],selStart:null,selEnd:null};
+  S={step:1,name:'',dur:60,weekOff:0,busy:[],selections:[]};
   renderStep();
 }
 
@@ -962,8 +1108,80 @@ function toast(msg,err=false){
   setTimeout(()=>el.remove(),3000);
 }
 
+// ─── Music player ─────────────────────────────────────────────────────────────
+const PLAYLIST = [
+  { artist: 'CJAMM', title: 'POKERFACE', src: '/audio/track2.mp3' },
+  { artist: 'NewJeans', title: 'Hype Boy 250 Remix', src: '/audio/track1.mp3' },
+];
+let currentTrack = 0;
+let isPlaying = false;
+const audio = document.getElementById('bgAudio');
+
+function loadTrack(idx) {
+  audio.src = PLAYLIST[idx].src;
+  document.querySelectorAll('.special-track').forEach((el, i) => {
+    el.classList.toggle('playing', i === idx);
+  });
+  const ticker = document.getElementById('tickerText');
+  if (ticker) ticker.textContent = `${PLAYLIST[idx].artist} — ${PLAYLIST[idx].title}`;
+}
+
+function togglePlay() {
+  if (isPlaying) {
+    audio.pause();
+    isPlaying = false;
+    document.getElementById('playBtn').textContent = '▶';
+  } else {
+    audio.play().catch(() => {});
+    isPlaying = true;
+    document.getElementById('playBtn').textContent = '⏸';
+  }
+}
+
+function switchTrack(idx) {
+  currentTrack = idx;
+  loadTrack(idx);
+  audio.play().catch(() => {});
+  isPlaying = true;
+  document.getElementById('playBtn').textContent = '⏸';
+  document.getElementById('specialDropdown').classList.remove('visible');
+}
+
+function toggleSpecialMenu() {
+  const dropdown = document.getElementById('specialDropdown');
+  dropdown.classList.toggle('visible');
+  // position under Special menu item
+  const special = document.getElementById('menuSpecial');
+  const rect = special.getBoundingClientRect();
+  dropdown.style.left = rect.left + 'px';
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#menuSpecial') && !e.target.closest('#specialDropdown')) {
+    document.getElementById('specialDropdown').classList.remove('visible');
+  }
+});
+
+audio.addEventListener('ended', () => {
+  currentTrack = (currentTrack + 1) % PLAYLIST.length;
+  loadTrack(currentTrack);
+  audio.play().catch(() => {});
+});
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
+loadTrack(0);
 drawCat('normal');
+
+// 자동재생 (브라우저 정책상 사용자 첫 인터랙션 후 재생)
+document.addEventListener('click', function startAudio() {
+  if (!isPlaying) {
+    audio.play().then(() => {
+      isPlaying = true;
+      document.getElementById('playBtn').textContent = '⏸';
+    }).catch(() => {});
+  }
+  document.removeEventListener('click', startAudio);
+}, { once: true });
 renderStep();
 </script>
 </body>

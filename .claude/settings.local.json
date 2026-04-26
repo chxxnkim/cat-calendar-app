@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(xargs kill *)",
+      "Bash(cp \"/Users/kakao/Downloads/bugs_20260426234116/Hype Boy – 250 Remix_NewJeans_NJWMX.mp3\" \"/Users/kakao/time-management/public/audio/track1.mp3\")",
+      "Bash(cp \"/Users/kakao/Downloads/bugs_20260426234116/포커페이스_C JAMM_킁.mp3\" \"/Users/kakao/time-management/public/audio/track2.mp3\")",
+      "Bash(env)"
     ]
   }
 }

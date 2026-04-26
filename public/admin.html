@@ -481,11 +481,17 @@ function renderRequestsList() {
 }
 
 function renderRequestCard(req) {
-  const s = new Date(req.requestedStart);
-  const e = new Date(req.requestedEnd);
   const fmtDate = d => d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
   const fmtTime = d => d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-  const timeStr = `${fmtDate(s)} ${fmtTime(s)} – ${fmtTime(e)}`;
+  const candidates = (req.candidates && req.candidates.length > 1) ? req.candidates : null;
+  const s = new Date(req.requestedStart);
+  const e = new Date(req.requestedEnd);
+  const timeStr = candidates
+    ? candidates.map((c,i) => {
+        const cs=new Date(c.start),ce=new Date(c.end);
+        return `후보${i+1}: ${fmtDate(cs)} ${fmtTime(cs)} – ${fmtTime(ce)}`;
+      }).join('<br>')
+    : `${fmtDate(s)} ${fmtTime(s)} – ${fmtTime(e)}`;
 
   const chipMap = { pending: 'chip-pending', approved: 'chip-approved', rejected: 'chip-rejected' };
   const labelMap = { pending: '대기 중', approved: '수락됨', rejected: '거절됨' };

@@ -4,6 +4,92 @@ const session = require('express-session');
 const { google } = require('googleapis');
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
+
+// ─── Mailer ───────────────────────────────────────────────────────────────────
+
+const mailer = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD
+  }
+});
+
+const ADMIN_EMAIL = 'chxxnkim@gmail.com';
+
+function fmtDate(iso) {
+  return new Date(iso).toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric', month: 'long', day: 'numeric',
+    weekday: 'short', hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function sendMail(opts) {
+  if (!process.env.GMAIL_APP_PASSWORD) return;
+  return mailer.sendMail(opts).catch(err => console.error('Mail error:', err.message));
+}
+
+// 어드민에게 새 요청 알림
+function notifyAdmin(request) {
+  const candidates = request.candidates?.length
+    ? request.candidates.map((c, i) => `후보${i + 1}: ${fmtDate(c.start)} — ${fmtDate(c.end)}`).join('\n')
+    : fmtDate(request.requestedStart) + ' — ' + fmtDate(request.requestedEnd);
+
+  sendMail({
+    from: `"냥비서" <${process.env.GMAIL_USER}>`,
+    to: ADMIN_EMAIL,
+    subject: `[냥비서] ${request.requesterName}님의 미팅 요청 도착`,
+    text: [
+      `새로운 미팅 요청이 도착했다냥!`,
+      ``,
+      `이름: ${request.requesterName}`,
+      `이메일: ${request.requesterEmail}`,
+      `미팅 제목: ${request.title || '(없음)'}`,
+      ``,
+      `── 희망 시간 ──`,
+      candidates,
+      ``,
+      `목적: ${request.purpose || '(없음)'}`,
+      ``,
+      `어드민에서 확인하세요 → http://localhost:3000/admin`
+    ].join('\n')
+  });
+}
+
+// 요청자에게 수락 알림
+function notifyApproved(request, htmlLink, meetLink) {
+  const timeStr = `${fmtDate(request.requestedStart)} — ${fmtDate(request.requestedEnd)}`;
+  sendMail({
+    from: `"김채원" <${process.env.GMAIL_USER}>`,
+    to: request.requesterEmail,
+    subject: `[미팅 확정 안내] 안녕하세요, 김채원입니다.`,
+    text: [
+      `안녕하세요, 시간 내어 미팅 요청해주셔서 감사합니다.`,
+      `보내주신 시간대 중 ${timeStr}에 뵈면 좋을 것 같습니다.`,
+      `감사합니다.`,
+      ``,
+      `김채원 드림`,
+      ``,
+      htmlLink ? `캘린더: ${htmlLink}` : '',
+      meetLink ? `Meet:   ${meetLink}` : '',
+    ].filter(Boolean).join('\n')
+  });
+}
+
+// 요청자에게 거절 알림
+function notifyRejected(request) {
+  sendMail({
+    from: `"냥비서" <${process.env.GMAIL_USER}>`,
+    to: request.requesterEmail,
+    subject: `[냥비서] 미팅 요청 결과 안내`,
+    text: [
+      `${request.requesterName}님, 아쉽게도 이번 미팅 요청은 어렵겠다냥.`,
+      `다음에 다시 요청해달라냥!`,
+    ].join('\n')
+  });
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -170,6 +256,7 @@ app.post('/api/admin/requests/:id/approve', async (req, res) => {
       processedAt: new Date().toISOString()
     };
     saveRequests(requests);
+    notifyApproved(requests[idx], data.htmlLink, data.conferenceData?.entryPoints?.[0]?.uri);
 
     res.json({ success: true, htmlLink: data.htmlLink });
   } catch (err) {
@@ -188,6 +275,7 @@ app.post('/api/admin/requests/:id/reject', (req, res) => {
   requests[idx].status = 'rejected';
   requests[idx].processedAt = new Date().toISOString();
   saveRequests(requests);
+  notifyRejected(requests[idx]);
   res.json({ success: true });
 });
 
@@ -249,7 +337,7 @@ app.get('/api/availability', async (req, res) => {
 });
 
 app.post('/api/request', (req, res) => {
-  const { requesterName, requesterEmail, purpose, requestedStart, requestedEnd, title } = req.body;
+  const { requesterName, requesterEmail, purpose, requestedStart, requestedEnd, title, candidates } = req.body;
   if (!requesterName || !requesterEmail || !requestedStart || !requestedEnd) {
     return res.status(400).json({ error: '이름, 이메일, 시간은 필수예요' });
   }
@@ -263,12 +351,14 @@ app.post('/api/request', (req, res) => {
     title: title || '',
     requestedStart,
     requestedEnd,
+    candidates: Array.isArray(candidates) ? candidates : [],
     status: 'pending',
     createdAt: new Date().toISOString()
   };
 
   requests.push(newRequest);
   saveRequests(requests);
+  notifyAdmin(newRequest);
   console.log(`New meeting request from ${requesterName} (${requesterEmail})`);
   res.json({ success: true, id: newRequest.id });
 });
