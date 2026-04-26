@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 — 미팅 스케줄러</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&family=Fira+Code&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #0F172A;
+      --navy-deep: #020617;
+      --slate:   #64748B;
+      --slate-mid: #475569;
+      --sage:    #059669;
+      --bg:      #F8FAFC;
+      --surface: #FFFFFF;
+      --border:  #E2E8F0;
+      --border-light: #F1F5F9;
+      --success: #22C55E;
+      --warning: #EAB308;
+      --error:   #EF4444;
+      --error-deep: #DC2626;
+      --shadow-sm:  0 1px 3px rgba(15,23,42,.03);
+      --shadow:     0 2px 6px rgba(15,23,42,.05);
+      --shadow-md:  0 4px 16px rgba(15,23,42,.07);
+      --shadow-lg:  0 8px 32px rgba(15,23,42,.10);
+      --font-head: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+      --font-mono: 'Fira Code', monospace;
+      --r: 8px; --r-sm: 4px; --r-md: 12px; --r-lg: 16px; --r-full: 9999px;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--navy);
+      min-height: 100vh;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-logo { display: flex; align-items: center; gap: 10px; }
+    .logo-mark {
+      width: 32px; height: 32px; background: var(--navy);
+      border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    header h1 { font-family: var(--font-head); font-size: 16px; font-weight: 600; }
+
+    .admin-badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: var(--r-sm);
+      font-size: 11px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;
+      background: rgba(15,23,42,.07); color: var(--navy);
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      border: none; border-radius: var(--r);
+      font-family: var(--font-body); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s; text-decoration: none;
+      padding: 10px 22px; height: 42px;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+    .btn-sm { font-size: 13px; padding: 6px 14px; height: 32px; }
+    .btn-primary { background: var(--navy); color: #fff; }
+    .btn-primary:hover { background: var(--navy-deep); }
+    .btn-secondary { background: transparent; color: var(--navy); border: 1px solid var(--navy); }
+    .btn-secondary:hover { background: rgba(15,23,42,.04); }
+    .btn-ghost { background: transparent; color: var(--slate-mid); }
+    .btn-ghost:hover { background: var(--border-light); color: var(--navy); }
+    .btn-success { background: var(--sage); color: #fff; }
+    .btn-success:hover { background: #047857; }
+    .btn-destructive { background: transparent; color: var(--error-deep); border: 1px solid var(--error); }
+    .btn-destructive:hover { background: rgba(239,68,68,.06); }
+
+    main { max-width: 960px; margin: 0 auto; padding: 32px 16px; }
+
+    .page-title {
+      font-family: var(--font-head);
+      font-size: 28px; font-weight: 700; color: var(--navy);
+      margin-bottom: 6px; letter-spacing: -0.5px;
+    }
+    .page-subtitle { font-size: 15px; color: var(--slate); margin-bottom: 32px; }
+
+    /* Accounts strip */
+    .accounts-strip {
+      display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap;
+    }
+
+    .account-card {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      box-shadow: var(--shadow-sm);
+      min-width: 220px;
+    }
+
+    .account-avatar {
+      width: 36px; height: 36px; border-radius: var(--r-full);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head); font-size: 14px; font-weight: 600;
+      color: #fff; flex-shrink: 0;
+    }
+    .avatar-0 { background: var(--navy); }
+    .avatar-1 { background: var(--slate); }
+
+    .account-info { flex: 1; min-width: 0; }
+    .account-email { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .account-status { font-size: 11px; margin-top: 2px; }
+    .status-connected { color: var(--success); }
+    .status-disconnected { color: var(--slate); }
+
+    /* Filter tabs */
+    .filter-tabs {
+      display: flex; gap: 4px; margin-bottom: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 4px;
+      width: fit-content;
+    }
+
+    .filter-tab {
+      padding: 6px 16px; border-radius: 6px;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; border: none; background: transparent;
+      color: var(--slate-mid); transition: all 0.15s;
+      font-family: var(--font-body);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .filter-tab.active { background: var(--navy); color: #fff; }
+    .filter-tab:not(.active):hover { background: var(--bg); color: var(--navy); }
+
+    .tab-count {
+      background: rgba(255,255,255,.25);
+      border-radius: var(--r-full);
+      padding: 1px 7px; font-size: 11px; font-weight: 600;
+    }
+    .filter-tab:not(.active) .tab-count {
+      background: var(--border-light); color: var(--slate);
+    }
+
+    /* Request cards */
+    .requests-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .request-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: box-shadow 0.15s;
+    }
+
+    .request-card:hover { box-shadow: var(--shadow); }
+
+    .request-card.approved { border-left: 3px solid var(--success); }
+    .request-card.rejected { border-left: 3px solid var(--border); opacity: 0.65; }
+    .request-card.pending  { border-left: 3px solid var(--warning); }
+
+    .request-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 12px;
+      padding: 18px 20px 14px;
+    }
+
+    .request-meta { flex: 1; min-width: 0; }
+
+    .request-title {
+      font-family: var(--font-head);
+      font-size: 16px; font-weight: 600; color: var(--navy);
+      margin-bottom: 4px;
+    }
+
+    .request-time {
+      font-family: var(--font-mono);
+      font-size: 13px; color: var(--slate-mid);
+    }
+
+    .chip {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: var(--r-sm);
+      font-size: 11px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .chip-pending  { background: rgba(234,179,8,.1); color: #CA8A04; }
+    .chip-approved { background: rgba(34,197,94,.1); color: #16A34A; }
+    .chip-rejected { background: var(--border-light); color: var(--slate); }
+
+    .request-body {
+      padding: 0 20px 18px;
+      display: flex; gap: 32px;
+      border-top: 1px solid var(--border-light);
+      padding-top: 14px;
+    }
+
+    .request-field { flex: 1; }
+    .request-field-label {
+      font-size: 11px; font-weight: 500; color: var(--slate);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+    }
+    .request-field-value { font-size: 14px; color: var(--navy); }
+
+    .request-actions {
+      display: flex; gap: 8px; align-items: center;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border-light);
+      background: var(--bg);
+    }
+
+    .event-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 13px; color: var(--sage); text-decoration: none; font-weight: 500;
+    }
+    .event-link:hover { text-decoration: underline; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 64px 24px;
+      color: var(--slate);
+    }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-title { font-family: var(--font-head); font-size: 18px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+    .empty-desc { font-size: 14px; color: var(--slate); }
+
+    /* Auth screen */
+    .auth-screen {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: calc(100vh - 60px);
+      padding: 32px; text-align: center;
+    }
+
+    .auth-badge {
+      width: 72px; height: 72px; background: var(--navy);
+      border-radius: var(--r-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin-bottom: 20px; box-shadow: var(--shadow-md);
+    }
+
+    .auth-title { font-family: var(--font-head); font-size: 26px; font-weight: 700; color: var(--navy); margin-bottom: 8px; letter-spacing: -0.4px; }
+    .auth-desc { font-size: 15px; color: var(--slate-mid); max-width: 360px; line-height: 1.6; margin-bottom: 28px; }
+
+    .auth-accounts { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 360px; }
+
+    .auth-account-btn {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); cursor: pointer;
+      font-family: var(--font-body); font-size: 14px; color: var(--navy);
+      text-decoration: none; transition: all 0.15s;
+      box-shadow: var(--shadow);
+    }
+    .auth-account-btn:hover { border-color: var(--navy); box-shadow: var(--shadow-md); }
+    .auth-account-btn.connected { border-color: var(--success); background: rgba(34,197,94,.04); }
+
+    .google-icon { width: 20px; height: 20px; flex-shrink: 0; }
+
+    /* Toast */
+    .toast-container {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 300; display: flex; flex-direction: column; gap: 8px; align-items: center;
+    }
+    .toast {
+      background: var(--navy); color: #fff;
+      padding: 10px 20px; border-radius: var(--r-full);
+      font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg);
+      animation: toastIn 0.2s ease;
+    }
+    .toast.success { background: #166534; }
+    .toast.error   { background: var(--error-deep); }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+      border-radius: var(--r-full); animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">
+    <div class="logo-mark">📅</div>
+    <h1>미팅 스케줄러</h1>
+    <span class="admin-badge">관리자</span>
+  </div>
+  <div id="headerActions" style="display:flex;gap:8px;align-items:center"></div>
+</header>
+
+<div id="app"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+let adminState = {
+  accounts: [],
+  requests: [],
+  filter: 'pending'
+};
+
+async function init() {
+  // Check if admin session is active
+  const res = await fetch('/api/admin/accounts');
+  if (res.status === 401) {
+    renderLoginScreen();
+    return;
+  }
+  const { accounts } = await res.json();
+  adminState.accounts = accounts;
+  await fetchRequests();
+  renderDashboard();
+}
+
+async function fetchRequests() {
+  const res = await fetch('/api/admin/requests');
+  if (res.ok) {
+    const { requests } = await res.json();
+    adminState.requests = requests;
+  }
+}
+
+async function refresh() {
+  await fetchRequests();
+  renderRequestsList();
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+
+function renderLoginScreen() {
+  const app = document.getElementById('app');
+  const slots = [
+    { label: '개인 구글 계정', sub: 'chxxnkim@gmail.com' },
+    { label: '토스 워크스페이스', sub: 'chaewon@toss.im' }
+  ];
+
+  const btns = slots.map((slot, i) => `
+    <a href="/auth/login?slot=${i}" class="auth-account-btn">
+      <svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      <div style="flex:1;text-align:left">
+        <div style="font-family:var(--font-head);font-weight:600;font-size:14px">${slot.label}</div>
+        <div style="font-size:12px;color:var(--slate);margin-top:2px">${slot.sub}</div>
+      </div>
+      <span style="font-size:12px;color:var(--slate)">→</span>
+    </a>
+  `).join('');
+
+  app.innerHTML = `
+    <div class="auth-screen">
+      <div class="auth-badge">🔐</div>
+      <h2 class="auth-title">관리자 로그인</h2>
+      <p class="auth-desc">구글 캘린더를 연결하면 미팅 요청을 검토하고 수락할 수 있어요.</p>
+      <div class="auth-accounts">${btns}</div>
+    </div>
+  `;
+  document.getElementById('headerActions').innerHTML = '';
+}
+
+function renderDashboard() {
+  const app = document.getElementById('app');
+  const connectedSlots = [
+    { label: '개인', fallback: 'chxxnkim@gmail.com' },
+    { label: '토스', fallback: 'chaewon@toss.im' }
+  ];
+
+  const accountCards = connectedSlots.map((slot, i) => {
+    const acct = adminState.accounts[i];
+    const connected = acct && acct.email;
+    return `
+      <div class="account-card">
+        <div class="account-avatar avatar-${i}">${slot.label[0]}</div>
+        <div class="account-info">
+          <div class="account-email">${connected ? acct.email : slot.fallback}</div>
+          <div class="account-status ${connected ? 'status-connected' : 'status-disconnected'}">
+            ${connected ? '● 연결됨' : '○ 미연결'}
+          </div>
+        </div>
+        ${!connected
+          ? `<a href="/auth/login?slot=${i}" class="btn btn-secondary btn-sm">연결</a>`
+          : ''
+        }
+      </div>
+    `;
+  }).join('');
+
+  app.innerHTML = `
+    <main>
+      <h2 class="page-title">미팅 요청 관리</h2>
+      <p class="page-subtitle">들어온 요청을 검토하고 수락 또는 거절해 주세요.</p>
+
+      <div class="accounts-strip">${accountCards}</div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+        <div class="filter-tabs" id="filterTabs"></div>
+        <button class="btn btn-ghost btn-sm" onclick="refresh()">↻ 새로고침</button>
+      </div>
+
+      <div id="requestsList"></div>
+    </main>
+  `;
+
+  document.getElementById('headerActions').innerHTML = `
+    <a href="/" class="btn btn-ghost btn-sm" target="_blank">공개 페이지 →</a>
+    <a href="/auth/logout" class="btn btn-secondary btn-sm">로그아웃</a>
+  `;
+
+  renderFilterTabs();
+  renderRequestsList();
+}
+
+function renderFilterTabs() {
+  const tabs = [
+    { key: 'pending',  label: '대기 중' },
+    { key: 'approved', label: '수락됨' },
+    { key: 'rejected', label: '거절됨' },
+    { key: 'all',      label: '전체' }
+  ];
+
+  const counts = {
+    pending:  adminState.requests.filter(r => r.status === 'pending').length,
+    approved: adminState.requests.filter(r => r.status === 'approved').length,
+    rejected: adminState.requests.filter(r => r.status === 'rejected').length,
+    all:      adminState.requests.length
+  };
+
+  document.getElementById('filterTabs').innerHTML = tabs.map(t => `
+    <button class="filter-tab ${adminState.filter === t.key ? 'active' : ''}"
+            onclick="setFilter('${t.key}')">
+      ${t.label}
+      <span class="tab-count">${counts[t.key]}</span>
+    </button>
+  `).join('');
+}
+
+function renderRequestsList() {
+  renderFilterTabs();
+  const filtered = adminState.filter === 'all'
+    ? adminState.requests
+    : adminState.requests.filter(r => r.status === adminState.filter);
+
+  const container = document.getElementById('requestsList');
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${adminState.filter === 'pending' ? '📭' : '📋'}</div>
+        <div class="empty-title">${adminState.filter === 'pending' ? '대기 중인 요청이 없어요' : '요청이 없어요'}</div>
+        <p class="empty-desc">새 요청이 들어오면 여기에 표시돼요.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `<div class="requests-list">${filtered.map(renderRequestCard).join('')}</div>`;
+}
+
+function renderRequestCard(req) {
+  const s = new Date(req.requestedStart);
+  const e = new Date(req.requestedEnd);
+  const fmtDate = d => d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+  const fmtTime = d => d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  const timeStr = `${fmtDate(s)} ${fmtTime(s)} – ${fmtTime(e)}`;
+
+  const chipMap = { pending: 'chip-pending', approved: 'chip-approved', rejected: 'chip-rejected' };
+  const labelMap = { pending: '대기 중', approved: '수락됨', rejected: '거절됨' };
+
+  const actions = req.status === 'pending' ? `
+    <div class="request-actions">
+      <button class="btn btn-success btn-sm" onclick="approveRequest('${req.id}', this)">
+        ✓ 수락하기
+      </button>
+      <button class="btn btn-destructive btn-sm" onclick="rejectRequest('${req.id}', this)">
+        ✕ 거절하기
+      </button>
+    </div>
+  ` : req.status === 'approved' && req.htmlLink ? `
+    <div class="request-actions">
+      <a href="${req.htmlLink}" target="_blank" class="event-link">📅 캘린더에서 보기 →</a>
+      ${req.meetLink ? `<a href="${req.meetLink}" target="_blank" class="event-link" style="margin-left:16px">🎥 Meet 링크 →</a>` : ''}
+    </div>
+  ` : '';
+
+  return `
+    <div class="request-card ${req.status}" id="req-${req.id}">
+      <div class="request-header">
+        <div class="request-meta">
+          <div class="request-title">${escHtml(req.title || `${req.requesterName}님의 미팅 요청`)}</div>
+          <div class="request-time">${timeStr}</div>
+        </div>
+        <span class="chip ${chipMap[req.status]}">${labelMap[req.status]}</span>
+      </div>
+      <div class="request-body">
+        <div class="request-field">
+          <div class="request-field-label">요청자</div>
+          <div class="request-field-value">${escHtml(req.requesterName)}</div>
+        </div>
+        <div class="request-field">
+          <div class="request-field-label">이메일</div>
+          <div class="request-field-value">${escHtml(req.requesterEmail)}</div>
+        </div>
+        ${req.purpose ? `
+        <div class="request-field" style="flex:2">
+          <div class="request-field-label">목적</div>
+          <div class="request-field-value">${escHtml(req.purpose)}</div>
+        </div>` : ''}
+      </div>
+      ${actions}
+    </div>
+  `;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function setFilter(key) {
+  adminState.filter = key;
+  renderFilterTabs();
+  renderRequestsList();
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+
+async function approveRequest(id, btn) {
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/api/admin/requests/${id}/approve`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      const idx = adminState.requests.findIndex(r => r.id === id);
+      if (idx >= 0) adminState.requests[idx].status = 'approved';
+      showToast('미팅이 수락됐어요! 캘린더 초대가 전송됐어요.', 'success');
+      renderRequestsList();
+    } else {
+      showToast(data.error || '오류가 발생했어요', 'error');
+      btn.innerHTML = '✓ 수락하기';
+      btn.disabled = false;
+    }
+  } catch {
+    showToast('네트워크 오류가 발생했어요', 'error');
+    btn.innerHTML = '✓ 수락하기';
+    btn.disabled = false;
+  }
+}
+
+async function rejectRequest(id, btn) {
+  if (!confirm('이 요청을 거절할까요?')) return;
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/api/admin/requests/${id}/reject`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      const idx = adminState.requests.findIndex(r => r.id === id);
+      if (idx >= 0) adminState.requests[idx].status = 'rejected';
+      showToast('요청이 거절됐어요');
+      renderRequestsList();
+    } else {
+      showToast(data.error || '오류가 발생했어요', 'error');
+      btn.innerHTML = '✕ 거절하기';
+      btn.disabled = false;
+    }
+  } catch {
+    showToast('네트워크 오류가 발생했어요', 'error');
+    btn.innerHTML = '✕ 거절하기';
+    btn.disabled = false;
+  }
+}
+
+function showToast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+init();
+</script>
+</body>
+</html>

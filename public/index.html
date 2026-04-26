@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>냥비서 — 채원님 미팅 예약</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:   #000000;
+      --white:   #FFFFFF;
+      --ltgray:  #EEEEEE;
+      --gray:    #CCCCCC;
+      --dkgray:  #888888;
+      --desktop: #999999;
+      --font:    'Press Start 2P', 'Monaco', monospace;
+      --body:    'Monaco', 'Courier New', monospace;
+    }
+
+    /* ── Desktop ─────────────────────────────────── */
+    body {
+      background: var(--desktop);
+      background-image:
+        repeating-linear-gradient(45deg,
+          rgba(0,0,0,.07) 0, rgba(0,0,0,.07) 1px,
+          transparent 0, transparent 50%),
+        repeating-linear-gradient(-45deg,
+          rgba(0,0,0,.07) 0, rgba(0,0,0,.07) 1px,
+          transparent 0, transparent 50%);
+      background-size: 4px 4px;
+      min-height: 100vh;
+      padding: 0 0 40px;
+      font-family: var(--body);
+    }
+
+    /* ── Mac menu bar ─────────────────────────────── */
+    .mac-menubar {
+      background: var(--white);
+      border-bottom: 1px solid var(--black);
+      height: 20px;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      gap: 18px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .mac-menu-item {
+      font-family: var(--font);
+      font-size: 8px;
+      color: var(--black);
+      cursor: default;
+      padding: 0 2px;
+      user-select: none;
+    }
+    .mac-menu-item.apple { font-size: 12px; }
+    .mac-menu-item.active {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    /* ── Window layout ────────────────────────────── */
+    .desktop-area {
+      display: flex;
+      justify-content: center;
+      padding: 20px 12px 0;
+    }
+
+    .mac-window {
+      background: var(--white);
+      border: 1px solid var(--black);
+      box-shadow: 3px 3px 0 var(--black);
+      width: 100%;
+      max-width: 540px;
+    }
+
+    /* ── Title bar (stripe pattern) ───────────────── */
+    .mac-titlebar {
+      height: 22px;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--black) 0, var(--black) 1px,
+        var(--white) 1px, var(--white) 2px
+      );
+      border-bottom: 1px solid var(--black);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      user-select: none;
+    }
+
+    .mac-title-text {
+      background: var(--white);
+      padding: 0 10px;
+      font-family: var(--font);
+      font-size: 9px;
+      color: var(--black);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .mac-close-box {
+      position: absolute;
+      left: 6px;
+      width: 13px; height: 13px;
+      border: 1px solid var(--black);
+      background: var(--white);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px;
+    }
+    .mac-close-box:active { background: var(--black); }
+
+    .mac-win-right {
+      position: absolute;
+      right: 6px;
+      display: flex; gap: 4px;
+    }
+    .mac-zoom-box {
+      width: 13px; height: 13px;
+      border: 1px solid var(--black);
+      background: var(--white);
+    }
+
+    /* ── Window body ──────────────────────────────── */
+    .mac-win-body {
+      padding: 16px;
+      background: var(--white);
+    }
+
+    /* ── Progress ─────────────────────────────────── */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--black);
+    }
+    .progress-dot {
+      width: 10px; height: 10px;
+      border: 1px solid var(--black);
+      background: var(--white);
+      flex-shrink: 0;
+    }
+    .progress-dot.done   { background: var(--black); }
+    .progress-dot.active { background: var(--black); outline: 2px solid var(--black); outline-offset: 1px; }
+    .progress-label {
+      font-family: var(--font);
+      font-size: 7px;
+      color: var(--dkgray);
+      margin-left: auto;
+    }
+
+    /* ── Cat section ──────────────────────────────── */
+    .cat-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--gray);
+    }
+
+    .cat-sprite { flex-shrink: 0; }
+    .cat-ascii {
+      font-family: var(--body);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--black);
+      white-space: pre;
+      display: block;
+      user-select: none;
+      min-width: 120px;
+      min-height: 5em;
+    }
+
+    /* Mac-style dialog balloon */
+    .cat-dialog {
+      flex: 1;
+      background: var(--white);
+      border: 1px solid var(--black);
+      padding: 10px 12px;
+      position: relative;
+    }
+    /* little tail pointing left */
+    .cat-dialog::before {
+      content: '';
+      position: absolute;
+      left: -6px; bottom: 16px;
+      border: 6px solid transparent;
+      border-right-color: var(--black);
+    }
+    .cat-dialog::after {
+      content: '';
+      position: absolute;
+      left: -4px; bottom: 17px;
+      border: 5px solid transparent;
+      border-right-color: var(--white);
+    }
+    .cat-name {
+      font-family: var(--font);
+      font-size: 7px;
+      color: var(--dkgray);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cat-msg {
+      font-family: var(--body);
+      font-size: 14px;
+      color: var(--black);
+      line-height: 1.55;
+    }
+
+    /* ── Step dialog (inner window) ───────────────── */
+    .step-dialog {
+      border: 1px solid var(--black);
+      background: var(--white);
+      margin-bottom: 12px;
+    }
+
+    .step-titlebar {
+      height: 18px;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--black) 0, var(--black) 1px,
+        var(--white) 1px, var(--white) 2px
+      );
+      border-bottom: 1px solid var(--black);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-titlebar-text {
+      background: var(--white);
+      padding: 0 8px;
+      font-family: var(--font);
+      font-size: 7px;
+      color: var(--black);
+    }
+
+    .step-body { padding: 16px; }
+
+    .step-title {
+      font-family: var(--font);
+      font-size: 10px;
+      color: var(--black);
+      line-height: 1.8;
+      margin-bottom: 18px;
+    }
+
+    /* ── Mac-style inputs ─────────────────────────── */
+    .mac-field { margin-bottom: 14px; }
+    .mac-label {
+      display: block;
+      font-family: var(--font);
+      font-size: 7px;
+      color: var(--black);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .mac-input {
+      width: 100%;
+      background: var(--white);
+      border: 1px solid var(--black);
+      /* Mac inset shadow */
+      box-shadow: inset 1px 1px 0 var(--dkgray);
+      padding: 7px 9px;
+      font-family: var(--body);
+      font-size: 15px;
+      color: var(--black);
+      outline: none;
+    }
+    .mac-input:focus {
+      outline: 2px solid var(--black);
+      outline-offset: 1px;
+    }
+    .mac-input.big {
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 10px 9px;
+    }
+    textarea.mac-input { min-height: 72px; resize: none; }
+    .mac-hint {
+      font-family: var(--body);
+      font-size: 11px;
+      color: var(--dkgray);
+      margin-top: 3px;
+    }
+
+    /* ── Mac-style buttons ────────────────────────── */
+    .btn-row { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+    .btn-row.full .mac-btn { flex: 1; justify-content: center; }
+
+    .mac-btn {
+      background: var(--white);
+      border: 1px solid var(--black);
+      border-radius: 3px;
+      font-family: var(--font);
+      font-size: 8px;
+      color: var(--black);
+      padding: 7px 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .mac-btn:active { background: var(--black); color: var(--white); }
+    .mac-btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+    /* Default button: thick rounded border */
+    .mac-btn.default {
+      border: 3px solid var(--black);
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .mac-btn.ghost {
+      border-color: var(--dkgray);
+      color: var(--dkgray);
+    }
+    .mac-btn.ghost:active { background: var(--dkgray); color: var(--white); }
+
+    /* ── Duration cards ───────────────────────────── */
+    .dur-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+
+    .dur-card {
+      border: 1px solid var(--black);
+      background: var(--white);
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .dur-card:active { background: var(--ltgray); }
+    .dur-card.selected { background: var(--black); }
+    .dur-card.selected .dur-label,
+    .dur-card.selected .dur-desc { color: var(--white); }
+
+    .dur-icon  { font-size: 22px; margin-bottom: 8px; }
+    .dur-label { font-family: var(--font); font-size: 10px; color: var(--black); }
+    .dur-desc  { font-size: 11px; color: var(--dkgray); margin-top: 4px; font-family: var(--body); }
+
+    /* ── Calendar ─────────────────────────────────── */
+    .cal-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .cal-label {
+      font-family: var(--font);
+      font-size: 7px;
+      color: var(--black);
+    }
+    .cal-nav-btns { display: flex; gap: 4px; }
+
+    .cal-scroll {
+      border: 1px solid var(--black);
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    /* Mac-style scrollbar */
+    .cal-scroll::-webkit-scrollbar { width: 15px; }
+    .cal-scroll::-webkit-scrollbar-track { background: var(--ltgray); border-left: 1px solid var(--black); }
+    .cal-scroll::-webkit-scrollbar-thumb { background: var(--gray); border: 1px solid var(--black); }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: 38px repeat(7, 1fr);
+      background: var(--white);
+    }
+
+    .cal-th {
+      background: var(--ltgray);
+      border-right: 1px solid var(--black);
+      border-bottom: 1px solid var(--black);
+      padding: 5px 2px;
+      text-align: center;
+      font-family: var(--font);
+      font-size: 6px;
+      color: var(--black);
+    }
+    .cal-th.today {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    .cal-tl {
+      background: var(--ltgray);
+      border-right: 1px solid var(--black);
+      border-bottom: 1px solid var(--gray);
+      font-family: var(--font);
+      font-size: 6px;
+      color: var(--dkgray);
+      text-align: right;
+      padding: 0 4px;
+      position: relative;
+      top: -6px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding-bottom: 1px;
+    }
+
+    .cal-cell {
+      border-right: 1px solid var(--gray);
+      border-bottom: 1px solid var(--gray);
+      background: var(--white);
+      cursor: pointer;
+      position: relative;
+    }
+    .cal-cell.h30 { height: 26px; }
+    .cal-cell.h60 { height: 38px; }
+    .cal-cell:hover:not(.busy):not(.out):not(.past) { background: var(--ltgray); }
+    .cal-cell.busy { background: repeating-linear-gradient(45deg, var(--white) 0, var(--white) 2px, var(--ltgray) 2px, var(--ltgray) 4px); cursor: not-allowed; }
+    .cal-cell.out  { background: var(--ltgray); cursor: default; }
+    .cal-cell.past { opacity: 0.3; cursor: default; }
+    .cal-cell.selected {
+      background: var(--black) !important;
+    }
+
+    .busy-mark {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--black);
+    }
+
+    /* ── Selected slot indicator ──────────────────── */
+    .slot-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--black);
+      padding: 7px 10px;
+      margin-top: 10px;
+      font-family: var(--body);
+      font-size: 13px;
+      background: var(--ltgray);
+    }
+    .slot-badge.visible { display: flex; }
+
+    /* ── Summary box ──────────────────────────────── */
+    .mac-summary {
+      border: 1px solid var(--black);
+      background: var(--ltgray);
+      margin-bottom: 16px;
+    }
+    .mac-sum-row {
+      display: flex;
+      gap: 10px;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--gray);
+      font-family: var(--body);
+      font-size: 13px;
+    }
+    .mac-sum-row:last-child { border-bottom: none; }
+    .mac-sum-k {
+      font-family: var(--font);
+      font-size: 6px;
+      color: var(--dkgray);
+      width: 48px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      text-transform: uppercase;
+    }
+    .mac-sum-v { color: var(--black); font-weight: bold; }
+
+    /* ── Success ──────────────────────────────────── */
+    .mac-success-title {
+      font-family: var(--font);
+      font-size: 11px;
+      color: var(--black);
+      text-align: center;
+      margin-bottom: 12px;
+      line-height: 1.8;
+    }
+
+    /* ── Pixel spinner ────────────────────────────── */
+    .mac-spinner {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      padding: 24px;
+    }
+    .mac-spin-dot {
+      width: 8px; height: 8px;
+      background: var(--black);
+      border: 1px solid var(--black);
+    }
+    .mac-spin-dot:nth-child(1) { animation: bk .9s 0s   infinite steps(2); }
+    .mac-spin-dot:nth-child(2) { animation: bk .9s .2s  infinite steps(2); }
+    .mac-spin-dot:nth-child(3) { animation: bk .9s .4s  infinite steps(2); }
+    @keyframes bk { 50% { background: var(--white); } }
+
+    /* ── Toast ────────────────────────────────────── */
+    .toast-wrap {
+      position: fixed;
+      bottom: 16px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex; flex-direction: column; gap: 6px; align-items: center;
+    }
+    .toast {
+      background: var(--white);
+      border: 1px solid var(--black);
+      box-shadow: 2px 2px 0 var(--black);
+      font-family: var(--font);
+      font-size: 8px;
+      padding: 8px 16px;
+      color: var(--black);
+      white-space: nowrap;
+      animation: tin .1s steps(2);
+    }
+    .toast.error { background: var(--black); color: var(--white); }
+    @keyframes tin { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ── Step transition ──────────────────────────── */
+    .step { animation: sin .1s steps(3); }
+    @keyframes sin { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ── Mac divider ──────────────────────────────── */
+    .mac-hr { border: none; border-top: 1px solid var(--black); margin: 8px 0; }
+
+    /* ── Status bar ───────────────────────────────── */
+    .mac-statusbar {
+      border-top: 1px solid var(--black);
+      background: var(--ltgray);
+      padding: 4px 8px;
+      font-family: var(--font);
+      font-size: 7px;
+      color: var(--dkgray);
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mac menu bar -->
+<div class="mac-menubar">
+  <span class="mac-menu-item apple">&#63743;</span>
+  <span class="mac-menu-item active">냥비서</span>
+  <span class="mac-menu-item">File</span>
+  <span class="mac-menu-item">Edit</span>
+  <span class="mac-menu-item">Special</span>
+</div>
+
+<div class="desktop-area">
+  <div class="mac-window">
+
+    <!-- Title bar -->
+    <div class="mac-titlebar">
+      <div class="mac-close-box">□</div>
+      <span class="mac-title-text">🐱 채원님 미팅 예약 — 냥비서</span>
+      <div class="mac-win-right">
+        <div class="mac-zoom-box"></div>
+      </div>
+    </div>
+
+    <div class="mac-win-body">
+
+      <!-- Progress -->
+      <div class="progress-row" id="progressRow">
+        <div class="progress-dot" id="pd1"></div>
+        <div class="progress-dot" id="pd2"></div>
+        <div class="progress-dot" id="pd3"></div>
+        <div class="progress-dot" id="pd4"></div>
+        <span class="progress-label" id="progressLabel">STEP 1 / 4</span>
+      </div>
+
+      <!-- Cat + bubble -->
+      <div class="cat-row">
+        <div class="cat-sprite">
+          <pre class="cat-ascii" id="catAscii"></pre>
+        </div>
+        <div class="cat-dialog">
+          <div class="cat-name">[ 냥비서 ]</div>
+          <div class="cat-msg" id="catMsg">채원님 캘린더 지킴이냥 🐾<br>먼저 이름을 알려달라냥!</div>
+        </div>
+      </div>
+
+      <!-- Step container -->
+      <div id="stepContainer"></div>
+
+    </div>
+
+    <!-- Status bar -->
+    <div class="mac-statusbar">
+      <span id="statusLeft">Ready</span>
+      <span id="statusRight">냥비서 v1.0</span>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const WORK_START = 9, WORK_END = 20;
+const DAY_KO = ['월','화','수','목','금','토','일'];
+
+// ─── ASCII cat dance frames ───────────────────────────────────────────────────
+const DANCE = [
+  "♪  ∧＿∧  ♪\n  （´・ω・｀∩\n   o      ,ﾉ\n   Ｏ＿  .ﾉ\n       (ノ  ",
+  "   ∧＿∧  ♪\n  ∩・ω・｀）\n   |    ⊂ﾉ\n   |    _⊃  ♪\n   し ⌒   ",
+  "♪  ∧＿∧∩  \n  （´・ω・)ﾉ\n  ⊂⌒l   / ♪\n   （＿）)  ☆\n  (（＿）☆  ",
+  "   ∩∧＿∧ ♪\n   ヽ(・ω・｀）\n    〉i⌒l⊃ \n♪  ( （＿） ☆\n   （＿）))☆",
+];
+const THINK = [
+  "   ∧＿∧    \n  （- ω -  ）\n   |   づ📄\n   |        \n   し⌒      ",
+  "   ∧＿∧    \n  （ .ω.  ）\n   |   づ📄\n   |        \n   し⌒      ",
+];
+const STILL = {
+  normal: "   ∧＿∧    \n  （´・ω・｀）\n   |   >📋 \n   |        \n   し⌒      ",
+  think:  "   ∧＿∧    \n  （- ω -  ）\n   |   づ📄\n   |        \n   し⌒      ",
+  happy:  "   ∧＿∧    \n  （´・ω・｀）\n   ＼  ✔️  ／\n    ＼    ／  \n     ~~      ",
+};
+
+let catTimer = null;
+function drawCat(mode = 'normal') {
+  const el = document.getElementById('catAscii');
+  if (!el) return;
+  if (catTimer) { clearInterval(catTimer); catTimer = null; }
+  const frames = mode === 'think' ? [...THINK, ...THINK] : DANCE;
+  const ms = mode === 'happy' ? 200 : 260;
+  let i = 0;
+  el.textContent = frames[0];
+  catTimer = setInterval(() => {
+    i++;
+    if (i >= frames.length) {
+      clearInterval(catTimer); catTimer = null;
+      el.textContent = STILL[mode] || STILL.normal;
+    } else {
+      el.textContent = frames[i];
+    }
+  }, ms);
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let S = { step:1, name:'', dur:60, weekOff:0, busy:[], selStart:null, selEnd:null };
+
+const CAT_MSGS = {
+  1:   { mode:'normal', msg:'채원님 캘린더 지킴이냥 🐾<br>먼저 이름을 알려달라냥!' },
+  2:   { mode:'normal', msg:'얼마나 이야기 나눌지<br>골라달라냥~ ⚡☕' },
+  '3a':{ mode:'think',  msg:'수염 레이더 작동 중이냥 📡<br>잠깐만 기다려달라냥...' },
+  3:   { mode:'normal', msg:'빈 시간을 찾았다냥! ✅<br>마음에 드는 시간을<br>콕 찍어달라냥!' },
+  4:   { mode:'normal', msg:'거의 다 됐다냥! 📬<br>마지막으로 정보만<br>알려달라냥~' },
+  5:   { mode:'happy',  msg:'전달 완료냥!! 🎉<br>채원님이 확인할 거냥!' },
+};
+
+function setCat(key) {
+  const c = CAT_MSGS[key];
+  drawCat(c.mode);
+  document.getElementById('catMsg').innerHTML = c.msg;
+}
+
+function setStatus(left, right) {
+  const l = document.getElementById('statusLeft');
+  const r = document.getElementById('statusRight');
+  if (l && left)  l.textContent = left;
+  if (r && right) r.textContent = right;
+}
+
+function updateProgress() {
+  [1,2,3,4].forEach(n => {
+    const el = document.getElementById('pd'+n);
+    el.className = 'progress-dot' + (n < S.step ? ' done' : n === S.step ? ' active' : '');
+  });
+  document.getElementById('progressLabel').textContent =
+    S.step <= 4 ? `STEP ${S.step} / 4` : 'DONE';
+}
+
+// ─── Steps ────────────────────────────────────────────────────────────────────
+function renderStep() {
+  updateProgress();
+  const el = document.createElement('div'); el.className = 'step';
+  switch (S.step) {
+    case 1: el.innerHTML = step1HTML(); setStatus('이름 입력 중', 'STEP 1'); break;
+    case 2: el.innerHTML = step2HTML(); setStatus('시간 선택 중', 'STEP 2'); break;
+    case 3: el.innerHTML = step3HTML(); setCat('3a'); loadBusy(); setStatus('캘린더 로딩 중...', 'STEP 3'); break;
+    case 4: el.innerHTML = step4HTML(); setStatus('정보 입력 중', 'STEP 4'); break;
+  }
+  const c = document.getElementById('stepContainer');
+  c.innerHTML = ''; c.appendChild(el);
+  if (S.step !== 3) setCat(S.step);
+  if (S.step === 1) setTimeout(() => document.getElementById('nameIn')?.focus(), 60);
+}
+
+// ── Step 1 ─────────────────────────────────────────────────────────────────
+function step1HTML() {
+  return `
+    <div class="step-dialog">
+      <div class="step-titlebar"><span class="step-titlebar-text">이름 입력</span></div>
+      <div class="step-body">
+        <p class="step-title">이름을 알려주세요</p>
+        <div class="mac-field">
+          <label class="mac-label">YOUR NAME</label>
+          <input class="mac-input big" id="nameIn" type="text"
+            value="${esc(S.name)}" placeholder="홍길동"
+            onkeydown="if(event.key==='Enter')next1()" />
+        </div>
+        <div class="btn-row full">
+          <button class="mac-btn default" onclick="next1()">다음 ▶</button>
+        </div>
+      </div>
+    </div>`;
+}
+function next1() {
+  const v = document.getElementById('nameIn')?.value.trim();
+  if (!v) { toast('이름을 입력해 주세요 😾', true); return; }
+  S.name = v; S.step = 2; renderStep();
+}
+
+// ── Step 2 ─────────────────────────────────────────────────────────────────
+function step2HTML() {
+  return `
+    <div class="step-dialog">
+      <div class="step-titlebar"><span class="step-titlebar-text">미팅 시간</span></div>
+      <div class="step-body">
+        <p class="step-title">${esc(S.name)}님,<br>얼마나 이야기 나눌까요?</p>
+        <div class="dur-grid">
+          <div class="dur-card ${S.dur===30?'selected':''}" onclick="setDur(30,this)">
+            <div class="dur-icon">⚡</div>
+            <div class="dur-label">30분</div>
+            <div class="dur-desc">빠른 싱크</div>
+          </div>
+          <div class="dur-card ${S.dur===60?'selected':''}" onclick="setDur(60,this)">
+            <div class="dur-icon">☕</div>
+            <div class="dur-label">1시간</div>
+            <div class="dur-desc">여유로운 대화</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="mac-btn ghost" onclick="back()">◀ 이전</button>
+          <button class="mac-btn default" onclick="next2()">빈 시간 찾기</button>
+        </div>
+      </div>
+    </div>`;
+}
+function setDur(min, el) {
+  S.dur = min;
+  document.querySelectorAll('.dur-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function next2() { S.step = 3; renderStep(); }
+
+// ── Step 3 ─────────────────────────────────────────────────────────────────
+function step3HTML() {
+  return `
+    <div class="step-dialog">
+      <div class="step-titlebar"><span class="step-titlebar-text">시간 선택</span></div>
+      <div class="step-body" style="padding-bottom:12px">
+        <div class="cal-nav">
+          <span class="cal-label" id="calLabel">로딩 중...</span>
+          <div class="cal-nav-btns">
+            <button class="mac-btn" style="padding:4px 8px;font-size:7px" onclick="wk(-1)">◀</button>
+            <button class="mac-btn" style="padding:4px 8px;font-size:7px" onclick="wk0()">TODAY</button>
+            <button class="mac-btn" style="padding:4px 8px;font-size:7px" onclick="wk(1)">▶</button>
+          </div>
+        </div>
+        <div class="cal-scroll">
+          <div id="calGrid">
+            <div class="mac-spinner">
+              <div class="mac-spin-dot"></div>
+              <div class="mac-spin-dot"></div>
+              <div class="mac-spin-dot"></div>
+            </div>
+          </div>
+        </div>
+        <div class="slot-badge" id="slotBadge">
+          <span>■</span><span id="slotTxt"></span>
+        </div>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="mac-btn ghost" onclick="back()">◀ 이전</button>
+          <button class="mac-btn default" id="toStep4" disabled onclick="next3()">이 시간으로 ▶</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function loadBusy() {
+  try {
+    const r = await fetch('/api/availability?days=21');
+    const { busy } = await r.json();
+    S.busy = busy.map(b => ({ s: new Date(b.start), e: new Date(b.end) }));
+    setCat(3);
+    setStatus('캘린더 로드 완료', 'STEP 3');
+  } catch { setCat(3); }
+  drawCal();
+}
+
+function drawCal() {
+  const grid = document.getElementById('calGrid');
+  const lbl  = document.getElementById('calLabel');
+  if (!grid) return;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const ws = new Date(today);
+  ws.setDate(today.getDate() - today.getDay() + 1 + S.weekOff * 7);
+  const days = Array.from({length:7}, (_,i) => { const d=new Date(ws); d.setDate(ws.getDate()+i); return d; });
+
+  if (lbl) lbl.textContent = `${days[0].getMonth()+1}/${days[0].getDate()} — ${days[6].getMonth()+1}/${days[6].getDate()}`;
+
+  const hCell = S.dur===30 ? 'h30' : 'h60';
+  const slots = [];
+  for (let h=WORK_START; h<WORK_END; h++) { slots.push({h,m:0}); if(S.dur===30) slots.push({h,m:30}); }
+
+  let html = `<div class="cal-grid">`;
+  html += `<div class="cal-th"></div>`;
+  days.forEach((d,i) => {
+    const isTd = d.getTime()===today.getTime();
+    html += `<div class="cal-th ${isTd?'today':''}">${DAY_KO[i]}<br>${d.getDate()}</div>`;
+  });
+
+  slots.forEach(({h,m}) => {
+    html += `<div class="cal-tl">${m===0?`${h}:00`:''}</div>`;
+    days.forEach(day => {
+      const ss=new Date(day); ss.setHours(h,m,0,0);
+      const se=new Date(ss); se.setMinutes(se.getMinutes()+S.dur);
+      const past=se<=new Date();
+      const busy=S.busy.some(b=>b.s<se&&b.e>ss);
+      const sel=S.selStart&&S.selStart.getTime()===ss.getTime();
+      let cls=`cal-cell ${hCell}`;
+      if(past)cls+=' past'; else if(busy)cls+=' busy';
+      if(sel)cls+=' selected';
+      const mark=busy?'<div class="busy-mark"></div>':'';
+      const click=(!past&&!busy)?`onclick="pickSlot('${ss.toISOString()}','${se.toISOString()}')"` :'';
+      html+=`<div class="${cls}" ${click}>${mark}</div>`;
+    });
+  });
+
+  html+=`</div>`;
+  grid.innerHTML=html;
+}
+
+function pickSlot(si,ei) {
+  S.selStart=new Date(si); S.selEnd=new Date(ei);
+  drawCal();
+  const s=new Date(si),e=new Date(ei);
+  const fd=d=>d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+  const ft=d=>d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  const badge=document.getElementById('slotBadge');
+  const txt=document.getElementById('slotTxt');
+  if(badge&&txt){txt.textContent=`${fd(s)} ${ft(s)} — ${ft(e)}`;badge.classList.add('visible');}
+  const btn=document.getElementById('toStep4');
+  if(btn)btn.disabled=false;
+}
+
+function wk(d){S.weekOff+=d;drawCal();}
+function wk0(){S.weekOff=0;drawCal();}
+function next3(){if(!S.selStart)return;S.step=4;renderStep();}
+
+// ── Step 4 ─────────────────────────────────────────────────────────────────
+function step4HTML() {
+  const fd=d=>d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+  const ft=d=>d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  return `
+    <div class="step-dialog">
+      <div class="step-titlebar"><span class="step-titlebar-text">미팅 정보 입력</span></div>
+      <div class="step-body">
+        <p class="step-title">마지막 단계냥!</p>
+        <div class="mac-summary">
+          <div class="mac-sum-row"><span class="mac-sum-k">이름</span><span class="mac-sum-v">${esc(S.name)}</span></div>
+          <div class="mac-sum-row"><span class="mac-sum-k">시간</span><span class="mac-sum-v">${fd(S.selStart)} ${ft(S.selStart)} — ${ft(S.selEnd)}</span></div>
+          <div class="mac-sum-row"><span class="mac-sum-k">길이</span><span class="mac-sum-v">${S.dur}분</span></div>
+        </div>
+        <div class="mac-field">
+          <label class="mac-label">EMAIL</label>
+          <input class="mac-input" id="reqEmail" type="email" placeholder="you@example.com" />
+          <div class="mac-hint">수락 여부를 이 메일로 알려드려요</div>
+        </div>
+        <div class="mac-field">
+          <label class="mac-label">MEETING TITLE</label>
+          <input class="mac-input" id="reqTitle" type="text" placeholder="예: 협업 제안 논의" />
+        </div>
+        <div class="mac-field">
+          <label class="mac-label">PURPOSE (선택)</label>
+          <textarea class="mac-input" id="reqPurpose" placeholder="냥비서가 채원님께 전달할게요..."></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="mac-btn ghost" onclick="back()">◀ 이전</button>
+          <button class="mac-btn default" id="submitBtn" onclick="send()">요청 보내기 🐾</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function send() {
+  const email=document.getElementById('reqEmail')?.value.trim();
+  const title=document.getElementById('reqTitle')?.value.trim();
+  const purpose=document.getElementById('reqPurpose')?.value.trim();
+  if(!email){toast('이메일을 입력해 주세요 😾',true);return;}
+  if(!title){toast('미팅 제목을 알려주세요 😾',true);return;}
+  const btn=document.getElementById('submitBtn');
+  btn.textContent='전송 중...';btn.disabled=true;
+  setStatus('서버에 전송 중...','');
+  try {
+    const res=await fetch('/api/request',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({requesterName:S.name,requesterEmail:email,title,purpose,
+        requestedStart:S.selStart.toISOString(),requestedEnd:S.selEnd.toISOString()})});
+    const d=await res.json();
+    if(d.success) renderSuccess();
+    else{toast(d.error||'오류가 발생했어요 😿',true);btn.textContent='요청 보내기 🐾';btn.disabled=false;}
+  } catch{toast('네트워크 오류 😿',true);btn.textContent='요청 보내기 🐾';btn.disabled=false;}
+}
+
+// ── Success ─────────────────────────────────────────────────────────────────
+function renderSuccess() {
+  setCat(5);
+  setStatus('전송 완료!', '냥비서 v1.0');
+  document.getElementById('progressLabel').textContent='DONE';
+  [1,2,3,4].forEach(n=>document.getElementById('pd'+n).className='progress-dot done');
+  const fd=d=>d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+  const ft=d=>d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('stepContainer').innerHTML=`
+    <div class="step">
+      <div class="step-dialog">
+        <div class="step-titlebar"><span class="step-titlebar-text">전송 완료 !</span></div>
+        <div class="step-body">
+          <p class="mac-success-title">요청이 전달됐다냥!! 🎉</p>
+          <div class="mac-summary">
+            <div class="mac-sum-row"><span class="mac-sum-k">이름</span><span class="mac-sum-v">${esc(S.name)}</span></div>
+            <div class="mac-sum-row"><span class="mac-sum-k">시간</span><span class="mac-sum-v">${fd(S.selStart)} ${ft(S.selStart)} — ${ft(S.selEnd)}</span></div>
+            <div class="mac-sum-row"><span class="mac-sum-k">길이</span><span class="mac-sum-v">${S.dur}분</span></div>
+          </div>
+          <p style="font-family:var(--body);font-size:13px;color:var(--dkgray);margin-bottom:14px;line-height:1.6">
+            채원님이 검토 후 이메일로 결과를 알려드릴 거예요. 조금만 기다려달라냥 🐾
+          </p>
+          <div class="btn-row full">
+            <button class="mac-btn" onclick="restart()">↩ 처음으로 돌아가기</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function restart() {
+  S={step:1,name:'',dur:60,weekOff:0,busy:[],selStart:null,selEnd:null};
+  renderStep();
+}
+
+function back(){if(S.step>1){S.step--;renderStep();}}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function toast(msg,err=false){
+  const el=document.createElement('div');
+  el.className='toast'+(err?' error':'');
+  el.textContent=msg;
+  document.getElementById('toastWrap').appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+drawCat('normal');
+renderStep();
+</script>
+</body>
+</html>
