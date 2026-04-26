@@ -101,6 +101,8 @@ const DATA_DIR = path.join(__dirname, 'data');
 const TOKENS_FILE = path.join(DATA_DIR, 'tokens.json');
 const REQUESTS_FILE = path.join(DATA_DIR, 'requests.json');
 
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
 function readJSON(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf-8')); }
   catch { return fallback; }
