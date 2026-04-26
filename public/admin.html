@@ -321,8 +321,50 @@ let adminState = {
 };
 
 async function init() {
+  const res = await fetch('/api/admin/me');
+  const { isAdmin } = await res.json();
+  if (!isAdmin) { renderLoginScreen(); return; }
   await fetchRequests();
   renderDashboard();
+}
+
+function renderLoginScreen() {
+  document.getElementById('app').innerHTML = `
+    <div class="auth-screen">
+      <div class="auth-badge">🔐</div>
+      <h2 class="auth-title">관리자 로그인</h2>
+      <p class="auth-desc">비밀번호를 입력하세요.</p>
+      <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px">
+        <input id="pwInput" type="password" placeholder="비밀번호"
+          style="padding:12px 16px;border:1px solid var(--border);border-radius:var(--r);font-size:14px;font-family:var(--font-body);outline:none;width:100%"
+          onkeydown="if(event.key==='Enter')doLogin()" />
+        <button class="btn btn-primary" onclick="doLogin()" style="width:100%">로그인</button>
+        <div id="loginError" style="color:var(--error);font-size:13px;text-align:center;min-height:20px"></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('headerActions').innerHTML = '';
+  setTimeout(() => document.getElementById('pwInput')?.focus(), 50);
+}
+
+async function doLogin() {
+  const pw = document.getElementById('pwInput').value;
+  const res = await fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pw })
+  });
+  if (res.ok) {
+    await fetchRequests();
+    renderDashboard();
+  } else {
+    document.getElementById('loginError').textContent = '비밀번호가 틀렸어요';
+  }
+}
+
+async function doLogout() {
+  await fetch('/api/admin/logout', { method: 'POST' });
+  renderLoginScreen();
 }
 
 async function fetchRequests() {
@@ -393,6 +435,7 @@ function renderDashboard() {
 
   document.getElementById('headerActions').innerHTML = `
     <a href="/" class="btn btn-ghost btn-sm" target="_blank">공개 페이지 →</a>
+    <button class="btn btn-secondary btn-sm" onclick="doLogout()">로그아웃</button>
   `;
 
   renderFilterTabs();

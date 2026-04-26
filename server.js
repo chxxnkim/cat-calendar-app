@@ -195,14 +195,39 @@ app.get('/auth/logout', (req, res) => {
   res.redirect('/admin');
 });
 
+// ─── Admin Auth ───────────────────────────────────────────────────────────────
+
+function isAdmin(req) { return !!req.session.isAdmin; }
+
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (password === process.env.ADMIN_PASSWORD) {
+    req.session.isAdmin = true;
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ error: '비밀번호가 틀렸어요' });
+  }
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  req.session.destroy();
+  res.json({ success: true });
+});
+
+app.get('/api/admin/me', (req, res) => {
+  res.json({ isAdmin: isAdmin(req) });
+});
+
 // ─── Admin API ────────────────────────────────────────────────────────────────
 
 app.get('/api/admin/requests', (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   const requests = getRequests();
   res.json({ requests: requests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) });
 });
 
 app.post('/api/admin/requests/:id/approve', (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   const requests = getRequests();
   const idx = requests.findIndex(r => r.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Request not found' });
@@ -224,6 +249,7 @@ app.post('/api/admin/requests/:id/approve', (req, res) => {
 });
 
 app.post('/api/admin/requests/:id/reject', (req, res) => {
+  if (!isAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
   const requests = getRequests();
   const idx = requests.findIndex(r => r.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
