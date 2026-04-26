@@ -197,21 +197,17 @@ app.get('/auth/logout', (req, res) => {
 
 // ─── Admin Auth ───────────────────────────────────────────────────────────────
 
-function isAdmin(req) { return !!req.session.isAdmin; }
+function isAdmin(req) {
+  return req.headers['x-admin-password'] === process.env.ADMIN_PASSWORD;
+}
 
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
   if (password === process.env.ADMIN_PASSWORD) {
-    req.session.isAdmin = true;
     res.json({ success: true });
   } else {
     res.status(401).json({ error: '비밀번호가 틀렸어요' });
   }
-});
-
-app.post('/api/admin/logout', (req, res) => {
-  req.session.destroy();
-  res.json({ success: true });
 });
 
 app.get('/api/admin/me', (req, res) => {

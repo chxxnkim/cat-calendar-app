@@ -315,15 +315,21 @@
 
 <script>
 let adminState = {
-  accounts: [],
   requests: [],
   filter: 'pending'
 };
 
+function adminHeaders() {
+  const pw = localStorage.getItem('adminPw') || '';
+  return { 'Content-Type': 'application/json', 'x-admin-password': pw };
+}
+
 async function init() {
-  const res = await fetch('/api/admin/me');
+  const pw = localStorage.getItem('adminPw');
+  if (!pw) { renderLoginScreen(); return; }
+  const res = await fetch('/api/admin/me', { headers: { 'x-admin-password': pw } });
   const { isAdmin } = await res.json();
-  if (!isAdmin) { renderLoginScreen(); return; }
+  if (!isAdmin) { localStorage.removeItem('adminPw'); renderLoginScreen(); return; }
   await fetchRequests();
   renderDashboard();
 }
@@ -355,6 +361,7 @@ async function doLogin() {
     body: JSON.stringify({ password: pw })
   });
   if (res.ok) {
+    localStorage.setItem('adminPw', pw);
     await fetchRequests();
     renderDashboard();
   } else {
@@ -362,13 +369,13 @@ async function doLogin() {
   }
 }
 
-async function doLogout() {
-  await fetch('/api/admin/logout', { method: 'POST' });
+function doLogout() {
+  localStorage.removeItem('adminPw');
   renderLoginScreen();
 }
 
 async function fetchRequests() {
-  const res = await fetch('/api/admin/requests');
+  const res = await fetch('/api/admin/requests', { headers: adminHeaders() });
   if (res.ok) {
     const { requests } = await res.json();
     adminState.requests = requests;
@@ -554,7 +561,7 @@ async function approveRequest(id, btn, candidates) {
   try {
     const res = await fetch(`/api/admin/requests/${id}/approve`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: adminHeaders(),
       body: JSON.stringify({ selectedStart, selectedEnd })
     });
     const data = await res.json();
@@ -580,7 +587,7 @@ async function rejectRequest(id, btn) {
   btn.innerHTML = '<span class="spinner"></span>';
   btn.disabled = true;
   try {
-    const res = await fetch(`/api/admin/requests/${id}/reject`, { method: 'POST' });
+    const res = await fetch(`/api/admin/requests/${id}/reject`, { method: 'POST', headers: adminHeaders() });
     const data = await res.json();
     if (data.success) {
       const idx = adminState.requests.findIndex(r => r.id === id);
